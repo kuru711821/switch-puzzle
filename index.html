@@ -39,22 +39,79 @@ function audio(){
     return audioContext;
   }catch{return null}
 }
-function tone(freq,duration=0.085,type='sine',volume=0.075,delay=0){
-  const ctx=audio();if(!ctx)return;
-  try{
-    const now=ctx.currentTime+delay,osc=ctx.createOscillator(),gain=ctx.createGain();
-    osc.type=type;osc.frequency.setValueAtTime(freq,now);
-    gain.gain.setValueAtTime(0.0001,now);
-    gain.gain.exponentialRampToValueAtTime(Math.max(volume,0.0002),now+0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001,now+duration);
-    osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+duration+0.02);
-  }catch{}
+// Short, naturalistic effects in the same minor key as the orchestral BGM.
+// A soft wooden tap works immediately; recorded grand-piano notes play when loaded.
+let sePianoSamples=null,sePianoPromise=null,seNoiseBuffer=null;
+function seClick(ctx,when=ctx.currentTime,level=0.055){
+  if(!seNoiseBuffer){
+    const count=Math.floor(ctx.sampleRate*0.055);
+    seNoiseBuffer=ctx.createBuffer(1,count,ctx.sampleRate);
+    const data=seNoiseBuffer.getChannelData(0);
+    for(let i=0;i<count;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(count*0.18));
+  }
+  const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+  source.buffer=seNoiseBuffer;filter.type='lowpass';filter.frequency.value=780;
+  gain.gain.setValueAtTime(level,when);
+  gain.gain.exponentialRampToValueAtTime(0.0001,when+0.055);
+  source.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+  source.start(when);source.stop(when+0.055);
+}
+function preloadSePiano(ctx){
+  if(pianoBuffers){sePianoSamples=pianoBuffers;return Promise.resolve(pianoBuffers)}
+  if(sePianoSamples)return Promise.resolve(sePianoSamples);
+  if(sePianoPromise)return sePianoPromise;
+  sePianoPromise=Promise.all([['C3',48],['C4',60],['C5',72]].map(async ([name,midi])=>{
+    const response=await fetch(PIANO_URL+name+'.mp3');
+    if(!response.ok)throw Error('SE piano sample unavailable');
+    return {midi,buffer:await ctx.decodeAudioData(await response.arrayBuffer())};
+  })).then(samples=>(sePianoSamples=samples)).catch(err=>{
+    console.warn('SE piano samples unavailable',err);return null;
+  }).finally(()=>{sePianoPromise=null});
+  return sePianoPromise;
+}
+function sePiano(ctx,midi,time,length=0.5,volume=0.08){
+  const samples=pianoBuffers||sePianoSamples;
+  if(!samples||!samples.length)return;
+  let chosen=samples[0];
+  for(const candidate of samples)
+    if(Math.abs(candidate.midi-midi)<Math.abs(chosen.midi-midi))chosen=candidate;
+  const source=ctx.createBufferSource(),gain=ctx.createGain();
+  const rate=Math.pow(2,(midi-chosen.midi)/12);
+  source.buffer=chosen.buffer;source.playbackRate.value=rate;
+  const duration=Math.min(length,Math.max(0.05,chosen.buffer.duration/rate-0.03));
+  gain.gain.setValueAtTime(0.0001,time);
+  gain.gain.linearRampToValueAtTime(volume,time+0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001,time+duration);
+  source.connect(gain);gain.connect(ctx.destination);
+  source.start(time);source.stop(time+duration+0.02);
+}
+function playSePiano(kind,ctx){
+  if(!soundOn)return;
+  const t=ctx.currentTime+0.015;
+  if(kind==='switch'){
+    sePiano(ctx,62,t,0.24,0.070); // D4, short, dark and restrained
+  }else if(kind==='clear'){
+    // D minor to F major: triumphant but somber grand-piano flourish.
+    [62,65,69,74,77,81].forEach((n,i)=>sePiano(ctx,n,t+i*0.115,1.5,0.080));
+    [50,57,62].forEach((n,i)=>sePiano(ctx,n,t+0.68+i*0.028,2.0,0.090));
+  }else if(kind==='reset'){
+    sePiano(ctx,57,t,0.38,0.072);
+    sePiano(ctx,50,t+0.16,0.55,0.080);
+  }else if(kind==='hint'){
+    sePiano(ctx,69,t,0.52,0.053);
+    sePiano(ctx,74,t+0.17,0.65,0.062);
+  }
 }
 function se(kind){
-  if(kind==='switch'){tone(620,0.075,'triangle',0.065);tone(900,0.055,'sine',0.025,0.025)}
-  else if(kind==='clear'){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,0.24,'sine',0.095,i*0.115))}
-  else if(kind==='reset'){tone(430,0.12,'triangle',0.055);tone(285,0.13,'triangle',0.045,0.055)}
-  else if(kind==='hint'){tone(780,0.11,'sine',0.065);tone(990,0.14,'sine',0.055,0.09)}
+  const ctx=audio();if(!ctx)return;
+  if(kind==='switch')seClick(ctx,ctx.currentTime,0.043);
+  else if(kind==='reset')seClick(ctx,ctx.currentTime,0.026);
+  if(pianoBuffers||sePianoSamples){playSePiano(kind,ctx);return}
+  // Download a small group of recorded notes on first interaction, independently of BGM.
+  // Avoid delayed notes stacking up while the user is clicking quickly.
+  preloadSePiano(ctx).then(samples=>{
+    if(samples&&soundOn&&kind!=='switch')playSePiano(kind,ctx);
+  });
 }
 // Original composition "Ashen Throne", played with genuine recorded grand piano samples.
 // Samples: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0).
@@ -272,7 +329,7 @@ renderSound();
 const power='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 2v10"/><path d="M6.2 5.8a9 9 0 1 0 11.6 0"/></svg>';
 function save(){try{localStorage.setItem('switch25-progress',JSON.stringify({stage,completed}))}catch{}}
 function start(n){stage=n;state=LEVELS[n].initial.slice();moves=0;hintCell=-1;$('hinttext').textContent='';save();render()}
-function press(i){if(state.every(Boolean))return;for(let j=0;j<25;j++){if(Math.abs(Math.floor(i/5)-Math.floor(j/5))+Math.abs(i%5-j%5)<=1)state[j]^=1}moves++;se('switch');hintCell=-1;$('hinttext').textContent='';if(state.every(Boolean)){if(!completed.includes(stage))completed.push(stage);save()}se('clear');render()}
+function press(i){if(state.every(Boolean))return;for(let j=0;j<25;j++){if(Math.abs(Math.floor(i/5)-Math.floor(j/5))+Math.abs(i%5-j%5)<=1)state[j]^=1}moves++;se('switch');hintCell=-1;$('hinttext').textContent='';if(state.every(Boolean)){if(!completed.includes(stage))completed.push(stage);save();se('clear')}render()}
 function render(){const clear=state.every(Boolean);$('moves').textContent=moves;$('lit').textContent=state.filter(Boolean).length+' / 25 点灯';$('title').textContent=clear?'🎉 CLEAR!':`LEVEL ${stage+1} — ${LEVELS[stage].name}`;$('description').textContent=clear?`${moves}手でクリア！ 目標手数は${LEVELS[stage].par}手`:`目標手数：${LEVELS[stage].par}手｜すべて点灯させよう`;$('next').textContent=stage===4?'最初から ↻':'次の問題 →';$('board').innerHTML='';state.forEach((on,i)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(hintCell===i?' hint':'');b.setAttribute('aria-label',`${Math.floor(i/5)+1}行${i%5+1}列：${on?'点灯':'消灯'}`);b.setAttribute('aria-pressed',!!on);b.innerHTML=power;b.addEventListener('click',()=>press(i));$('board').append(b)});$('levels').innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.className='level'+(i===stage?' active':'')+(completed.includes(i)?' completed':'');b.textContent=i+1;b.setAttribute('aria-label',`レベル${i+1} ${l.name}`);b.setAttribute('aria-current',i===stage?'step':'false');b.addEventListener('click',()=>start(i));$('levels').append(b)})}
 // 現在の盤面を必ず解けるようにするGF(2)ガウス消去と最小手数探索。
 function optimalSolution(board){const a=[];for(let i=0;i<25;i++){let mask=0;for(let j=0;j<25;j++)if(Math.abs((i/5|0)-(j/5|0))+Math.abs(i%5-j%5)<=1)mask|=1<<j;a.push({mask,rhs:1-board[i]})}const pivots=[];let r=0;for(let c=0;c<25;c++){let p=-1;for(let k=r;k<25;k++)if((a[k].mask>>>c)&1){p=k;break}if(p<0)continue;[a[r],a[p]]=[a[p],a[r]];for(let k=0;k<25;k++)if(k!==r&&((a[k].mask>>>c)&1)){a[k].mask^=a[r].mask;a[k].rhs^=a[r].rhs}pivots.push(c);r++}for(let k=r;k<25;k++)if(!a[k].mask&&a[k].rhs)return null;const free=[];for(let c=0;c<25;c++)if(!pivots.includes(c))free.push(c);let best=null;for(let v=0;v<(1<<free.length);v++){let x=0;free.forEach((c,j)=>{if((v>>>j)&1)x|=1<<c});for(let k=r-1;k>=0;k--){const c=pivots[k];let parity=0;let bits=(a[k].mask&~(1<<c))&x;while(bits){parity^=1;bits&=bits-1}if(a[k].rhs^parity)x|=1<<c}const pos=[];for(let j=0;j<25;j++)if((x>>>j)&1)pos.push(j);if(best===null||pos.length<best.length)best=pos}return best}
