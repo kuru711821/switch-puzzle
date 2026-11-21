@@ -56,12 +56,25 @@ function se(kind){
   else if(kind==='reset'){tone(430,0.12,'triangle',0.055);tone(285,0.13,'triangle',0.045,0.055)}
   else if(kind==='hint'){tone(780,0.11,'sine',0.065);tone(990,0.14,'sine',0.055,0.09)}
 }
-// このゲーム用に作った、穏やかなオリジナルのループ曲。
-const BGM_BEAT=60/96;
-const BGM_MELODY=[76,79,81,79,76,74,72,null,74,76,79,76,72,null,69,null,
-  72,76,77,76,72,69,72,null,74,76,79,77,76,74,72,null];
-const BGM_CHORDS=[[48,52,55],[45,48,52],[41,45,48],[43,47,50],
-  [48,52,55],[45,48,52],[41,45,48],[43,47,50]];
+// オリジナル曲「灰の王座」: ダークファンタジー風の重厚なボス戦BGM。
+// 既存楽曲の音源や旋律は使用せず、Web Audio APIで音を合成する。
+const BGM_BEAT=60/86;
+const BGM_ROOTS=[38,34,31,33,38,36,34,33,38,34,31,33,38,36,33,38];
+const BGM_CHORDS=[
+ [50,53,57],[46,50,53],[43,46,50],[45,49,52],
+ [50,53,57],[48,52,55],[46,50,53],[45,49,52],
+ [50,53,57],[46,50,53],[43,46,50],[45,49,52],
+ [50,53,57],[48,52,55],[45,49,52],[50,53,57]
+];
+const BGM_MELODY=[
+ null,null,null,null, null,null,null,null,
+ 74,null,77,76, 74,72,69,null,
+ 70,null,72,74, 73,null,69,null,
+ 74,77,81,79, 77,null,76,74,
+ 72,null,74,77, 76,null,73,null,
+ 74,null,77,81, 79,77,76,74,
+ 73,null,76,73, 74,null,null,null
+];
 let bgmPlaying=false,bgmTimer=null,bgmMaster=null,bgmBeatIndex=0,bgmNextTime=0;
 function getBgmContext(){
   try{
@@ -73,28 +86,53 @@ function getBgmContext(){
   }catch{return null}
 }
 const midiHz=n=>440*Math.pow(2,(n-69)/12);
-function bgmNote(ctx,midi,time,length,level,type='sine'){
-  const osc=ctx.createOscillator(),g=ctx.createGain();
-  osc.type=type;osc.frequency.setValueAtTime(midiHz(midi),time);
+function bgmVoice(ctx,midi,time,length,level,type='sawtooth',attack=0.09){
+  const osc=ctx.createOscillator(),filter=ctx.createBiquadFilter(),g=ctx.createGain();
+  osc.type=type;
+  osc.frequency.setValueAtTime(midiHz(midi),time);
+  filter.type='lowpass';filter.frequency.value=type==='sawtooth'?850:1700;
+  const end=time+length;
   g.gain.setValueAtTime(0.0001,time);
-  g.gain.exponentialRampToValueAtTime(level,time+0.025);
-  g.gain.exponentialRampToValueAtTime(0.0001,time+length);
-  osc.connect(g);g.connect(bgmMaster);
-  osc.start(time);osc.stop(time+length+0.025);
+  g.gain.exponentialRampToValueAtTime(level,time+Math.min(attack,length/3));
+  g.gain.setValueAtTime(level*0.75,Math.max(time+attack,end-0.24));
+  g.gain.exponentialRampToValueAtTime(0.0001,end);
+  osc.connect(filter);filter.connect(g);g.connect(bgmMaster);
+  osc.start(time);osc.stop(end+0.025);
+}
+function bgmTimpani(ctx,time,accent=false){
+  const osc=ctx.createOscillator(),g=ctx.createGain();
+  const duration=accent?0.48:0.33;
+  osc.type='sine';
+  osc.frequency.setValueAtTime(accent?115:95,time);
+  osc.frequency.exponentialRampToValueAtTime(45,time+duration);
+  g.gain.setValueAtTime(accent?0.19:0.105,time);
+  g.gain.exponentialRampToValueAtTime(0.0001,time+duration);
+  osc.connect(g);g.connect(bgmMaster);osc.start(time);osc.stop(time+duration+0.02);
+}
+function bgmBell(ctx,midi,time){
+  bgmVoice(ctx,midi,time,2.4,0.018,'sine',0.014);
+  bgmVoice(ctx,midi+12,time,1.45,0.008,'triangle',0.014);
 }
 function bgmSchedule(){
   if(!bgmPlaying||!audioContext||!bgmMaster)return;
   const ctx=audioContext;
-  while(bgmNextTime<ctx.currentTime+0.22){
-    const beat=bgmBeatIndex%32,bar=Math.floor(beat/4);
-    const note=BGM_MELODY[beat];
-    if(note!==null)bgmNote(ctx,note,bgmNextTime,BGM_BEAT*0.86,0.065,'sine');
-    // 4拍ごとに柔らかな和音を置き、1拍ごとに控えめな伴奏を加える。
-    if(beat%4===0){
-      BGM_CHORDS[bar].forEach((n,i)=>bgmNote(ctx,n,bgmNextTime+BGM_BEAT*0.025*i,BGM_BEAT*3.25,0.018,'sine'));
+  while(bgmNextTime<ctx.currentTime+0.24){
+    const step=bgmBeatIndex%64,bar=Math.floor(step/4),beat=step%4,t=bgmNextTime;
+    if(beat===0){
+      // 低い弦と合唱を思わせる持続和音。
+      BGM_CHORDS[bar].forEach((n,i)=>{
+        bgmVoice(ctx,n,t,BGM_BEAT*3.88,0.020,'sawtooth',0.25);
+        bgmVoice(ctx,n+12,t,BGM_BEAT*3.8,0.008,'sine',0.32);
+      });
+      bgmVoice(ctx,BGM_ROOTS[bar]-12,t,BGM_BEAT*3.7,0.052,'triangle',0.08);
+      if(bar%4===0)bgmBell(ctx,BGM_ROOTS[bar]+24,t+0.07);
     }
-    if(beat%2===0){
-      bgmNote(ctx,BGM_CHORDS[bar][beat%4===0?0:2]+12,bgmNextTime,BGM_BEAT*0.7,0.018,'triangle');
+    if(beat===0||beat===2)bgmTimpani(ctx,t,beat===0);
+    if(beat===3&&bar>=4)bgmTimpani(ctx,t,false);
+    const note=BGM_MELODY[step];
+    if(note!==null&&note!==undefined){
+      bgmVoice(ctx,note,t,BGM_BEAT*0.9,0.032,'sawtooth',0.08);
+      bgmVoice(ctx,note-12,t,BGM_BEAT*0.93,0.014,'triangle',0.06);
     }
     bgmBeatIndex++;bgmNextTime+=BGM_BEAT;
   }
@@ -125,7 +163,6 @@ function renderBgm(){
   b.setAttribute('aria-pressed',String(bgmPlaying));
 }
 $('bgm').addEventListener('click',()=>{if(bgmPlaying)stopBgm();else startBgm()});
-// バックグラウンドでは音を止め、勝手に再開しない。
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&bgmPlaying)stopBgm()});
 renderBgm();
 function renderSound(){const b=$('sound');b.textContent=soundOn?'🔊 効果音 ON':'🔇 効果音 OFF';b.setAttribute('aria-pressed',String(soundOn))}
