@@ -5,13 +5,13 @@
 <meta name="theme-color" content="#0e1729"><meta name="description" content="上下左右を反転させて全部点灯！5ステージの無料ロジックパズル。">
 <title>SWITCH / 25 - ひらめきパズル</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:#eff6ff;background:#09111f}*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% 0%,#203958 0%,#0e1729 55%,#09111f 100%);display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,490px);padding:clamp(17px,4vw,30px);background:#111e32;border:1px solid #35445c;border-radius:26px;box-shadow:0 20px 80px #0006}.eyebrow{font-size:11px;letter-spacing:.2em;color:#a9b9d0;font-weight:700}.header{display:flex;justify-content:space-between;gap:10px;align-items:start}.header h1{font-size:clamp(25px,6vw,33px);margin:3px 0 0;letter-spacing:.035em}.counter{text-align:right;color:#b9c9dd;font-size:11px}.counter strong{display:block;font-size:31px;color:#fff;font-variant-numeric:tabular-nums}.lead{color:#a7bad1;font-size:13px;margin:13px 0 16px;line-height:1.7}.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:0 0 16px}.level{border:1px solid #465772;border-radius:11px;background:#24354e;color:#d8e6f7;padding:11px 0;font-weight:800;cursor:pointer}.level.active{border-color:#f6cb54;background:#524527;color:#ffe492}.level.completed:after{content:' ✓';color:#70e0a5}.boardwrap{background:#19283e;border-radius:19px;padding:clamp(12px,3.8vw,20px)}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(6px,1.8vw,11px)}.cell{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;border:2px solid #516077;background:#35465f;color:#9babbd;cursor:pointer;transition:background .12s,transform .12s,border-color .12s;touch-action:manipulation}.cell:active{transform:scale(.94)}.cell.on{background:#f5c94f;border-color:#ffe49a;color:#705016;box-shadow:0 0 16px #f4c45150}.cell.hint{outline:3px solid #70e0a5;outline-offset:-5px}.cell svg{width:43%;height:43%}.status{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#b9c9db;margin-top:13px}.swatch{width:11px;height:11px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}.message{text-align:center;min-height:56px;margin:15px 0 6px}.message b{display:block;font-size:17px}.message small{display:block;color:#a7b9ce;margin-top:7px}.buttons{display:flex;gap:9px}.action{flex:1;border:1px solid #526581;border-radius:11px;background:#273953;color:#f1f6ff;padding:13px 9px;font-size:14px;font-weight:700;cursor:pointer}.action.primary{background:#ecd073;border-color:#ecd073;color:#3f3114}.soundbar{display:flex;justify-content:flex-end;margin:-3px 0 12px}.sound-toggle{background:#24354e;color:#d8e6f7;border:1px solid #526581;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}.sound-toggle:focus-visible{outline:3px solid white;outline-offset:2px}.footer{text-align:center;color:#899db6;font-size:11px;line-height:1.6;margin-top:16px}.hinttext{text-align:center;color:#a1e7c6;font-size:12px;min-height:20px;margin-top:8px}.action:focus-visible,.level:focus-visible,.cell:focus-visible{outline:3px solid white;outline-offset:2px}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+:root{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:#eff6ff;background:#09111f}*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% 0%,#203958 0%,#0e1729 55%,#09111f 100%);display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,490px);padding:clamp(17px,4vw,30px);background:#111e32;border:1px solid #35445c;border-radius:26px;box-shadow:0 20px 80px #0006}.eyebrow{font-size:11px;letter-spacing:.2em;color:#a9b9d0;font-weight:700}.header{display:flex;justify-content:space-between;gap:10px;align-items:start}.header h1{font-size:clamp(25px,6vw,33px);margin:3px 0 0;letter-spacing:.035em}.counter{text-align:right;color:#b9c9dd;font-size:11px}.counter strong{display:block;font-size:31px;color:#fff;font-variant-numeric:tabular-nums}.lead{color:#a7bad1;font-size:13px;margin:13px 0 16px;line-height:1.7}.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:0 0 16px}.level{border:1px solid #465772;border-radius:11px;background:#24354e;color:#d8e6f7;padding:11px 0;font-weight:800;cursor:pointer}.level.active{border-color:#f6cb54;background:#524527;color:#ffe492}.level.completed:after{content:' ✓';color:#70e0a5}.boardwrap{background:#19283e;border-radius:19px;padding:clamp(12px,3.8vw,20px)}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(6px,1.8vw,11px)}.cell{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;border:2px solid #516077;background:#35465f;color:#9babbd;cursor:pointer;transition:background .12s,transform .12s,border-color .12s;touch-action:manipulation}.cell:active{transform:scale(.94)}.cell.on{background:#f5c94f;border-color:#ffe49a;color:#705016;box-shadow:0 0 16px #f4c45150}.cell.hint{outline:3px solid #70e0a5;outline-offset:-5px}.cell svg{width:43%;height:43%}.status{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#b9c9db;margin-top:13px}.swatch{width:11px;height:11px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}.message{text-align:center;min-height:56px;margin:15px 0 6px}.message b{display:block;font-size:17px}.message small{display:block;color:#a7b9ce;margin-top:7px}.buttons{display:flex;gap:9px}.action{flex:1;border:1px solid #526581;border-radius:11px;background:#273953;color:#f1f6ff;padding:13px 9px;font-size:14px;font-weight:700;cursor:pointer}.action.primary{background:#ecd073;border-color:#ecd073;color:#3f3114}.soundbar{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin:-3px 0 12px}.sound-toggle{background:#24354e;color:#d8e6f7;border:1px solid #526581;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}.sound-toggle:focus-visible{outline:3px solid white;outline-offset:2px}.footer{text-align:center;color:#899db6;font-size:11px;line-height:1.6;margin-top:16px}.hinttext{text-align:center;color:#a1e7c6;font-size:12px;min-height:20px;margin-top:8px}.action:focus-visible,.level:focus-visible,.cell:focus-visible{outline:3px solid white;outline-offset:2px}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body><main class="app">
 <div class="header"><div><div class="eyebrow">LIGHTS OUT PUZZLE</div><h1>SWITCH / 25</h1></div><div class="counter">MOVES<strong id="moves">0</strong></div></div>
 <p class="lead">スイッチを押すと、自分と上下左右が反転。<br>25個すべてを点灯させよう！</p>
-<div class="soundbar"><button type="button" class="sound-toggle" id="sound" aria-pressed="true">🔊 効果音 ON</button></div>
+<div class="soundbar"><button type="button" class="sound-toggle" id="sound" aria-pressed="true">🔊 効果音 ON</button><button type="button" class="sound-toggle" id="bgm" aria-pressed="false">♫ BGM 再生</button></div>
 <nav class="levels" id="levels" aria-label="ステージ選択"></nav>
 <section class="boardwrap"><div class="board" id="board" aria-label="5×5のスイッチ盤面"></div><div class="status"><span><i class="swatch" style="background:#f5c94f"></i>点灯　<i class="swatch" style="background:#35465f"></i>消灯</span><span id="lit">0 / 25 点灯</span></div></section>
 <div class="message" aria-live="polite"><b id="title">LEVEL 1</b><small id="description">全部点灯させよう</small></div>
@@ -56,6 +56,78 @@ function se(kind){
   else if(kind==='reset'){tone(430,0.12,'triangle',0.055);tone(285,0.13,'triangle',0.045,0.055)}
   else if(kind==='hint'){tone(780,0.11,'sine',0.065);tone(990,0.14,'sine',0.055,0.09)}
 }
+// このゲーム用に作った、穏やかなオリジナルのループ曲。
+const BGM_BEAT=60/96;
+const BGM_MELODY=[76,79,81,79,76,74,72,null,74,76,79,76,72,null,69,null,
+  72,76,77,76,72,69,72,null,74,76,79,77,76,74,72,null];
+const BGM_CHORDS=[[48,52,55],[45,48,52],[41,45,48],[43,47,50],
+  [48,52,55],[45,48,52],[41,45,48],[43,47,50]];
+let bgmPlaying=false,bgmTimer=null,bgmMaster=null,bgmBeatIndex=0,bgmNextTime=0;
+function getBgmContext(){
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)return null;
+    if(!audioContext)audioContext=new Ctx();
+    if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+    return audioContext;
+  }catch{return null}
+}
+const midiHz=n=>440*Math.pow(2,(n-69)/12);
+function bgmNote(ctx,midi,time,length,level,type='sine'){
+  const osc=ctx.createOscillator(),g=ctx.createGain();
+  osc.type=type;osc.frequency.setValueAtTime(midiHz(midi),time);
+  g.gain.setValueAtTime(0.0001,time);
+  g.gain.exponentialRampToValueAtTime(level,time+0.025);
+  g.gain.exponentialRampToValueAtTime(0.0001,time+length);
+  osc.connect(g);g.connect(bgmMaster);
+  osc.start(time);osc.stop(time+length+0.025);
+}
+function bgmSchedule(){
+  if(!bgmPlaying||!audioContext||!bgmMaster)return;
+  const ctx=audioContext;
+  while(bgmNextTime<ctx.currentTime+0.22){
+    const beat=bgmBeatIndex%32,bar=Math.floor(beat/4);
+    const note=BGM_MELODY[beat];
+    if(note!==null)bgmNote(ctx,note,bgmNextTime,BGM_BEAT*0.86,0.065,'sine');
+    // 4拍ごとに柔らかな和音を置き、1拍ごとに控えめな伴奏を加える。
+    if(beat%4===0){
+      BGM_CHORDS[bar].forEach((n,i)=>bgmNote(ctx,n,bgmNextTime+BGM_BEAT*0.025*i,BGM_BEAT*3.25,0.018,'sine'));
+    }
+    if(beat%2===0){
+      bgmNote(ctx,BGM_CHORDS[bar][beat%4===0?0:2]+12,bgmNextTime,BGM_BEAT*0.7,0.018,'triangle');
+    }
+    bgmBeatIndex++;bgmNextTime+=BGM_BEAT;
+  }
+}
+function stopBgm(){
+  bgmPlaying=false;
+  if(bgmTimer!==null){clearInterval(bgmTimer);bgmTimer=null}
+  if(bgmMaster&&audioContext){
+    const t=audioContext.currentTime;
+    bgmMaster.gain.cancelScheduledValues(t);
+    bgmMaster.gain.setTargetAtTime(0,t,0.035);
+  }
+  bgmMaster=null;
+  renderBgm();
+}
+function startBgm(){
+  if(bgmPlaying)return;
+  const ctx=getBgmContext();if(!ctx)return;
+  bgmMaster=ctx.createGain();
+  bgmMaster.gain.value=0.32;
+  bgmMaster.connect(ctx.destination);
+  bgmPlaying=true;bgmBeatIndex=0;bgmNextTime=ctx.currentTime+0.06;
+  bgmSchedule();bgmTimer=setInterval(bgmSchedule,85);
+  renderBgm();
+}
+function renderBgm(){
+  const b=$('bgm');b.textContent=bgmPlaying?'♫ BGM 停止':'♫ BGM 再生';
+  b.setAttribute('aria-pressed',String(bgmPlaying));
+}
+$('bgm').addEventListener('click',()=>{if(bgmPlaying)stopBgm();else startBgm()});
+// バックグラウンドでは音を止め、勝手に再開しない。
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&bgmPlaying)stopBgm()});
+renderBgm();
 function renderSound(){const b=$('sound');b.textContent=soundOn?'🔊 効果音 ON':'🔇 効果音 OFF';b.setAttribute('aria-pressed',String(soundOn))}
 $('sound').addEventListener('click',()=>{
   soundOn=!soundOn;
