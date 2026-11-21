@@ -5,18 +5,82 @@
 <meta name="theme-color" content="#f2efdc"><meta name="description" content="上下左右を反転させて全部点灯！5ステージの無料ロジックパズル。">
 <title>SWITCH / 25 - ひらめきパズル</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:#383e32;background:#dce7d4}*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% 0%,#fff3d8 0%,#f2efdc 55%,#dce7d4 100%);display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,490px);padding:clamp(17px,4vw,30px);background:#fffbf0;border:1px solid #c9c8ad;border-radius:26px;box-shadow:0 20px 80px #53634426}.eyebrow{font-size:11px;letter-spacing:.2em;color:#5c694f;font-weight:700}.header{display:flex;justify-content:space-between;gap:10px;align-items:start}.header h1{font-size:clamp(25px,6vw,33px);margin:3px 0 0;letter-spacing:.035em}.counter{text-align:right;color:#59634f;font-size:11px}.counter strong{display:block;font-size:31px;color:#3d503a;font-variant-numeric:tabular-nums}.lead{color:#525e49;font-size:13px;margin:13px 0 16px;line-height:1.7}.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:0 0 16px}.level{border:1px solid #a5ac92;border-radius:11px;background:#eaf0df;color:#384c35;padding:11px 0;font-weight:800;cursor:pointer}.level.active{border-color:#ad7843;background:#f9dfac;color:#593f26}.level.completed:after{content:' ✓';color:#21614e}.boardwrap{background:#e1e5ce;border-radius:19px;padding:clamp(12px,3.8vw,20px)}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(6px,1.8vw,11px)}.cell{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;border:2px solid #74876c;background:#879c80;color:#293e30;cursor:pointer;transition:background .12s,transform .12s,border-color .12s;touch-action:manipulation}.cell:active{transform:scale(.94)}.cell.on{background:#ffdb85;border-color:#cb9442;color:#624415;box-shadow:0 0 16px #f5bc5440}.cell.hint{outline:3px solid #21614e;outline-offset:-5px}.cell svg{width:43%;height:43%}.status{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#46553e;margin-top:13px}.swatch{width:11px;height:11px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}.message{text-align:center;min-height:56px;margin:15px 0 6px}.message b{display:block;font-size:17px}.message small{display:block;color:#5f6656;margin-top:7px}.buttons{display:flex;gap:9px}.action{flex:1;border:1px solid #a0aa90;border-radius:11px;background:#e8eedc;color:#3d5037;padding:13px 9px;font-size:14px;font-weight:700;cursor:pointer}.action.primary{background:#f2cd8f;border-color:#f2cd8f;color:#554026}.soundbar{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin:-3px 0 12px}.sound-toggle{background:#eaf0df;color:#384c35;border:1px solid #a0aa90;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}.sound-toggle:focus-visible{outline:3px solid #79476a;outline-offset:2px}.footer{text-align:center;color:#646d59;font-size:11px;line-height:1.6;margin-top:16px}.hinttext{text-align:center;color:#26604b;font-size:12px;min-height:20px;margin-top:8px}.action:focus-visible,.level:focus-visible,.cell:focus-visible{outline:3px solid #79476a;outline-offset:2px}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+:root{font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;color:#eee3d1;background:#080e17}
+*{box-sizing:border-box}
+html{min-height:100%;background:#080e17}
+body{margin:0;min-height:100svh;padding:clamp(12px,2vw,30px);display:flex;justify-content:center;align-items:center;background:radial-gradient(ellipse at 50% 26%,#3c4d64 0%,transparent 40%),linear-gradient(90deg,#090d13 0%,#1a2533 25%,#1c2839 50%,#1a2533 75%,#090d13 100%);overflow-x:hidden;position:relative}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.30;background:repeating-linear-gradient(90deg,transparent 0 12%,#0b1018 12.15% 13%,#465263 13.1% 13.35%,transparent 13.55% 25%),repeating-linear-gradient(0deg,transparent 0 105px,#64738618 107px 110px,transparent 113px 215px)}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,#d4def929,transparent 36%),linear-gradient(to top,#030609dd,transparent 35%);z-index:0}
+.app{position:relative;z-index:1;width:min(100%,1240px);min-height:700px;padding:26px clamp(14px,3vw,38px) 22px;border:1px solid #8f7347a8;outline:1px solid #312e29;outline-offset:-7px;background:linear-gradient(#0a1019c9,#111b29e8),repeating-linear-gradient(125deg,#ffffff08 0 1px,transparent 1px 7px);box-shadow:0 24px 90px #000c,inset 0 0 65px #0009;border-radius:5px}
+.app:before,.app:after{content:"✦";position:absolute;top:8px;color:#af8950;font-size:21px}.app:before{left:12px}.app:after{right:12px}
+.mast{text-align:center;margin:3px auto 14px;position:relative}
+.eyebrow{font-size:10px;letter-spacing:.35em;color:#c2a879;text-transform:uppercase}
+h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,49px);color:#eddfbc;text-shadow:0 2px 15px #a8753970}
+.halo{font-size:23px;color:#e9c889;text-shadow:0 0 14px #e3b45c;letter-spacing:.4em;line-height:1.1}
+.lead{margin:7px 0 0;font-family:system-ui,sans-serif;color:#c7c9cc;font-size:12px;line-height:1.7}
+.layout{display:grid;grid-template-columns:minmax(150px,210px) minmax(0,1fr) minmax(150px,210px);gap:clamp(12px,2.6vw,32px);align-items:start}
+.side{padding-top:90px}
+.side-panel{border:1px solid #9d824c7c;background:linear-gradient(160deg,#0a0e15ed,#141b27dd);padding:16px 12px 18px;box-shadow:inset 0 0 16px #000c,0 6px 25px #0009;position:relative}
+.side-panel:before,.side-panel:after{content:"✧";position:absolute;left:50%;transform:translateX(-50%);color:#c5a870}.side-panel:before{top:-13px}.side-panel:after{bottom:-13px}
+.side-heading{color:#e0c795;text-align:center;font-size:17px;letter-spacing:.14em;font-weight:400;margin:6px 0 16px;border-bottom:1px solid #7d6643;padding-bottom:12px}
+.levels{display:flex;flex-direction:column;gap:10px}
+.level{background:linear-gradient(100deg,#0b1119,#212735,#0b1119);color:#bcb9ad;border:1px solid #665c4d;min-height:43px;padding:7px 6px;font-size:15px;font-family:Georgia,serif;cursor:pointer;position:relative;text-shadow:0 1px #000}
+.level:hover{border-color:#c4a56c;color:#f6e0b4}
+.level.active{border-color:#f4cd86;background:linear-gradient(100deg,#4c3219,#222028,#574123);color:#ffe7ac;box-shadow:inset 0 0 17px #ffb83a42,0 0 13px #efb8554a}
+.level.completed:after{content:" ✦";color:#e4c680}
+.level:focus-visible,.cell:focus-visible,.action:focus-visible,.sound-toggle:focus-visible{outline:2px solid #f3d58c;outline-offset:3px}
+.counter{text-align:center;color:#c5b99f;font-size:12px;letter-spacing:.18em}
+.counter strong{display:block;margin:16px auto;color:#f4e8d5;font-size:clamp(32px,4vw,56px);font-weight:400;font-variant-numeric:tabular-nums;text-shadow:0 0 20px #d9b17d7a}
+.goal{text-align:center;color:#aab1bc;line-height:1.9;font-size:12px;font-family:system-ui,sans-serif;border-top:1px solid #66583f;padding-top:16px}
+.center{min-width:0}
+.altar{position:relative;padding:21px;background:linear-gradient(130deg,#424951,#1b1f25 19%,#48494b 48%,#161c24 83%,#494a49);border:7px ridge #776c5e;box-shadow:0 12px 35px #000d,inset 0 0 20px #000c}
+.altar:before{content:"✥";position:absolute;left:50%;transform:translateX(-50%);top:-31px;border:2px solid #9f855c;background:#191a21;border-radius:50%;width:48px;height:48px;display:grid;place-items:center;color:#c9a671;font-size:24px;text-shadow:0 0 16px #d0a85c;box-shadow:0 5px 15px #000}
+.boardwrap{padding:clamp(10px,2vw,18px);background:linear-gradient(145deg,#181b20,#34383c 50%,#101418);border:2px solid #958066;box-shadow:inset 0 0 25px #000d}
+.board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(4px,.7vw,8px)}
+.cell{min-width:0;aspect-ratio:1;border-radius:2px;border:2px solid #696159;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;color:#7a7772;background:linear-gradient(135deg,#555757,#303337 28%,#25292e 65%,#45494b);box-shadow:inset 1px 2px 4px #aeb8b431,inset -3px -4px 8px #0009,0 2px 4px #0008;position:relative;transition:transform .15s,box-shadow .22s,border-color .22s}
+.cell:before{content:"";position:absolute;inset:5px;border:1px solid #b5a79329;pointer-events:none}
+.cell:active{transform:scale(.94)}
+.cell.on{color:#ffe7a9;border-color:#d3a35e;background:radial-gradient(circle,#b68b416e 0%,#4d4130 42%,#252a30 90%);box-shadow:inset 0 0 17px #ffe1a246,0 0 12px #ebb65773,0 2px 4px #0009}
+.cell.hint{outline:2px solid #9ed7d5;outline-offset:-5px;animation:hintPulse 1.4s infinite}
+.sigil{font-size:clamp(16px,3vw,31px);font-family:Georgia,"Segoe UI Symbol",serif;line-height:1;filter:drop-shadow(0 1px 2px #000)}
+.cell.on .sigil{text-shadow:0 0 10px #ffdb7d,0 0 25px #edb350}
+@keyframes hintPulse{50%{box-shadow:0 0 25px #95ece4}}
+.status{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;color:#cbc1ab;font-size:11px;font-family:system-ui,sans-serif}
+.swatch{width:10px;height:10px;display:inline-block;border-radius:1px;vertical-align:middle;margin:0 3px 0 7px}
+.message{text-align:center;min-height:66px;margin:15px 0 4px}
+.message b{display:block;color:#e6cd92;font-size:19px;letter-spacing:.09em;font-weight:400}
+.message small{display:block;margin-top:7px;font-size:12px;color:#b9bdc3;font-family:system-ui,sans-serif}
+.buttons{display:flex;gap:9px}
+.action,.sound-toggle{font-family:Georgia,"Yu Mincho",serif;cursor:pointer;letter-spacing:.06em;border-radius:2px}
+.action{flex:1;min-width:0;padding:13px 5px;background:linear-gradient(#2f3136,#0d121b);color:#e3d1af;border:1px solid #91754b;box-shadow:inset 0 0 7px #0008,0 2px 5px #0009;font-size:clamp(10px,1.25vw,14px)}
+.action:hover,.sound-toggle:hover{background:#453a2e}
+.action.primary{background:linear-gradient(#5a4631,#241c18);border-color:#dbac61;color:#ffe4a3;box-shadow:inset 0 0 12px #e3b97140,0 0 11px #bf823c45}
+.soundbar{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:11px 0 0}
+.sound-toggle{background:linear-gradient(#29272a,#10141d);color:#d4c19e;border:1px solid #816e4f;padding:9px 12px;font-size:12px}
+.footer{text-align:center;color:#9ea3a5;font-size:10px;line-height:1.6;font-family:system-ui,sans-serif;margin-top:12px}
+.footer a{color:#d9bd86!important}
+.hinttext{min-height:19px;color:#a8dfd7;font-size:12px;text-align:center;font-family:system-ui,sans-serif;margin-top:8px}
+.candle{width:7px;height:35px;background:linear-gradient(90deg,#a99d7a,#f0e2c0,#85704f);box-shadow:0 -14px 30px 8px #eac07823;position:absolute;bottom:-5px}
+.candle:before{content:"";position:absolute;left:0;top:-13px;width:7px;height:14px;border-radius:80% 10% 80% 20%;background:#fff0a8;transform:rotate(10deg);box-shadow:0 0 16px 5px #e6af57b8}
+.candle.left{left:-8px}.candle.right{right:-8px}
+@media(max-width:850px){.app{padding:20px 14px}.layout{grid-template-columns:1fr}.side{padding:0}.side-panel{padding:10px 12px}.side-heading{margin:0 0 9px;font-size:13px;padding-bottom:7px}.levels{flex-direction:row;gap:6px}.level{flex:1;min-height:40px}.side.right{order:3}.center{order:2}.side.left{order:1}.side.right .side-panel{display:flex;gap:14px;align-items:center;justify-content:space-between}.side.right .side-heading{display:none}.counter strong{display:inline;font-size:25px;margin-left:8px}.goal{border:0;padding:0}.altar{max-width:590px;margin:auto}.mast{margin-bottom:20px}}
+@media(max-width:480px){body{padding:7px}.app{padding:15px 9px}.altar{padding:10px;border-width:5px}.boardwrap{padding:8px}.board{gap:4px}.cell{border-width:1px}.cell:before{inset:3px}.sigil{font-size:clamp(15px,5.2vw,24px)}.goal{font-size:10px}.candle{display:none}.buttons{gap:5px}.soundbar{gap:6px}.sound-toggle{font-size:11px;padding:7px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body><main class="app">
-<div class="header"><div><div class="eyebrow">LIGHTS OUT PUZZLE</div><h1>SWITCH / 25</h1></div><div class="counter">MOVES<strong id="moves">0</strong></div></div>
-<p class="lead">スイッチを押すと、自分と上下左右が反転。<br>25個すべてを点灯させよう！</p>
-<div class="soundbar"><button type="button" class="sound-toggle" id="sound" aria-pressed="true">🔊 効果音 ON</button><button type="button" class="sound-toggle" id="bgm" aria-pressed="false">♫ BGM 再生</button></div>
-<nav class="levels" id="levels" aria-label="ステージ選択"></nav>
-<section class="boardwrap"><div class="board" id="board" aria-label="5×5のスイッチ盤面"></div><div class="status"><span><i class="swatch" style="background:#ffdb85"></i>点灯　<i class="swatch" style="background:#879c80"></i>消灯</span><span id="lit">0 / 25 点灯</span></div></section>
-<div class="message" aria-live="polite"><b id="title">LEVEL 1</b><small id="description">全部点灯させよう</small></div>
-<div class="buttons"><button class="action" id="reset">↻ リセット</button><button class="action" id="hint">💡 ヒント</button><button class="action primary" id="next">次の問題 →</button></div>
-<div class="hinttext" id="hinttext" aria-live="polite"></div><div class="footer">5 STAGES • 進捗を端末に保存 • BGM音源の初回読込には通信が必要</div><div class="footer">Piano samples: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">Salamander Grand Piano V3</a> by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">CC BY 3.0</a>). Orchestral samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">tonejs-instruments</a> (CC BY 3.0; violin, cello, French horn, harmonium). Original arrangement; samples pitch-shifted and mixed. The harmonium supplies choir-like texture, not recorded vocals.</div>
+<header class="mast"><div class="halo" aria-hidden="true">✧ ✦ ✧</div><div class="eyebrow">THE RUINED SANCTUARY</div><h1>SWITCH / 25</h1><p class="lead">古き祭壇に光を灯せ。押した紋章と上下左右の封印が反転する。</p></header>
+<div class="layout">
+<aside class="side left"><div class="side-panel"><h2 class="side-heading">✧ STAGE ✧</h2><nav class="levels" id="levels" aria-label="ステージ選択"></nav></div></aside>
+<section class="center" aria-label="封印の祭壇"><div class="altar"><div class="candle left" aria-hidden="true"></div><div class="candle right" aria-hidden="true"></div><div class="boardwrap"><div class="board" id="board" aria-label="5×5のスイッチ盤面"></div><div class="status"><span><i class="swatch" style="background:#e8bd68"></i>点灯 <i class="swatch" style="background:#4c5053"></i>消灯</span><span id="lit">0 / 25 点灯</span></div></div></div>
+<div class="message" aria-live="polite"><b id="title">LEVEL 1</b><small id="description">すべての封印を照らそう</small></div>
+<div class="buttons"><button class="action" id="reset">↻ RESET</button><button class="action" id="hint">✧ HINT</button><button class="action primary" id="next">NEXT ❯</button></div>
+<div class="hinttext" id="hinttext" aria-live="polite"></div><div class="soundbar"><button type="button" class="sound-toggle" id="sound" aria-pressed="true">♫ SE ON</button><button type="button" class="sound-toggle" id="bgm" aria-pressed="false">♫ BGM 再生</button></div>
+</section>
+<aside class="side right"><div class="side-panel"><h2 class="side-heading">✧ RECORD ✧</h2><div class="counter">MOVES<strong id="moves">0</strong></div><p class="goal">25の紋章を照らし<br>祭壇の封印を解き放て</p></div></aside>
+</div>
+<div class="footer">5 STAGES • 進捗を端末に保存 • BGM音源の初回読込には通信が必要</div>
+<div class="footer">Piano samples: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano" target="_blank" rel="noopener noreferrer">Salamander Grand Piano V3</a> by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer">CC BY 3.0</a>). Orchestral samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener noreferrer">tonejs-instruments</a> (CC BY 3.0; violin, cello, French horn, harmonium). Original arrangement; samples pitch-shifted and mixed. The harmonium supplies choir-like texture, not recorded vocals.</div>
 </main>
 <script>
 'use strict';
@@ -330,11 +394,11 @@ $('sound').addEventListener('click',()=>{
   renderSound();if(soundOn)se('switch');
 });
 renderSound();
-const power='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 2v10"/><path d="M6.2 5.8a9 9 0 1 0 11.6 0"/></svg>';
+const sigils=['✧','☽','☼','♜','✝','❧','✥','✦','♛','♧','⌛','✺','✟','❖','☾','⚖','❀','♜','✷','♣','♨','✶','⚜','▤','♕'];
 function save(){try{localStorage.setItem('switch25-progress',JSON.stringify({stage,completed}))}catch{}}
 function start(n){stage=n;state=LEVELS[n].initial.slice();moves=0;hintCell=-1;$('hinttext').textContent='';save();render()}
 function press(i){if(state.every(Boolean))return;for(let j=0;j<25;j++){if(Math.abs(Math.floor(i/5)-Math.floor(j/5))+Math.abs(i%5-j%5)<=1)state[j]^=1}moves++;se('switch');hintCell=-1;$('hinttext').textContent='';if(state.every(Boolean)){if(!completed.includes(stage))completed.push(stage);save();se('clear')}render()}
-function render(){const clear=state.every(Boolean);$('moves').textContent=moves;$('lit').textContent=state.filter(Boolean).length+' / 25 点灯';$('title').textContent=clear?'🎉 CLEAR!':`LEVEL ${stage+1} — ${LEVELS[stage].name}`;$('description').textContent=clear?`${moves}手でクリア！ 目標手数は${LEVELS[stage].par}手`:`目標手数：${LEVELS[stage].par}手｜すべて点灯させよう`;$('next').textContent=stage===4?'最初から ↻':'次の問題 →';$('board').innerHTML='';state.forEach((on,i)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(hintCell===i?' hint':'');b.setAttribute('aria-label',`${Math.floor(i/5)+1}行${i%5+1}列：${on?'点灯':'消灯'}`);b.setAttribute('aria-pressed',!!on);b.innerHTML=power;b.addEventListener('click',()=>press(i));$('board').append(b)});$('levels').innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.className='level'+(i===stage?' active':'')+(completed.includes(i)?' completed':'');b.textContent=i+1;b.setAttribute('aria-label',`レベル${i+1} ${l.name}`);b.setAttribute('aria-current',i===stage?'step':'false');b.addEventListener('click',()=>start(i));$('levels').append(b)})}
+function render(){const clear=state.every(Boolean);$('moves').textContent=moves;$('lit').textContent=state.filter(Boolean).length+' / 25 点灯';$('title').textContent=clear?'🎉 CLEAR!':`LEVEL ${stage+1} — ${LEVELS[stage].name}`;$('description').textContent=clear?`${moves}手でクリア！ 目標手数は${LEVELS[stage].par}手`:`目標手数：${LEVELS[stage].par}手｜すべて点灯させよう`;$('next').textContent=stage===4?'最初から ↻':'NEXT ❯';$('board').innerHTML='';state.forEach((on,i)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(hintCell===i?' hint':'');b.setAttribute('aria-label',`${Math.floor(i/5)+1}行${i%5+1}列：${on?'点灯':'消灯'}`);b.setAttribute('aria-pressed',!!on);b.innerHTML='<span class="sigil" aria-hidden="true">'+sigils[i]+'</span>';b.addEventListener('click',()=>press(i));$('board').append(b)});$('levels').innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.className='level'+(i===stage?' active':'')+(completed.includes(i)?' completed':'');b.textContent=i+1;b.setAttribute('aria-label',`レベル${i+1} ${l.name}`);b.setAttribute('aria-current',i===stage?'step':'false');b.addEventListener('click',()=>start(i));$('levels').append(b)})}
 // 現在の盤面を必ず解けるようにするGF(2)ガウス消去と最小手数探索。
 function optimalSolution(board){const a=[];for(let i=0;i<25;i++){let mask=0;for(let j=0;j<25;j++)if(Math.abs((i/5|0)-(j/5|0))+Math.abs(i%5-j%5)<=1)mask|=1<<j;a.push({mask,rhs:1-board[i]})}const pivots=[];let r=0;for(let c=0;c<25;c++){let p=-1;for(let k=r;k<25;k++)if((a[k].mask>>>c)&1){p=k;break}if(p<0)continue;[a[r],a[p]]=[a[p],a[r]];for(let k=0;k<25;k++)if(k!==r&&((a[k].mask>>>c)&1)){a[k].mask^=a[r].mask;a[k].rhs^=a[r].rhs}pivots.push(c);r++}for(let k=r;k<25;k++)if(!a[k].mask&&a[k].rhs)return null;const free=[];for(let c=0;c<25;c++)if(!pivots.includes(c))free.push(c);let best=null;for(let v=0;v<(1<<free.length);v++){let x=0;free.forEach((c,j)=>{if((v>>>j)&1)x|=1<<c});for(let k=r-1;k>=0;k--){const c=pivots[k];let parity=0;let bits=(a[k].mask&~(1<<c))&x;while(bits){parity^=1;bits&=bits-1}if(a[k].rhs^parity)x|=1<<c}const pos=[];for(let j=0;j<25;j++)if((x>>>j)&1)pos.push(j);if(best===null||pos.length<best.length)best=pos}return best}
 $('reset').addEventListener('click',()=>{se('reset');start(stage)});$('next').addEventListener('click',()=>{se('transition');start((stage+1)%5)});$('hint').addEventListener('click',()=>{se('hint');const solution=optimalSolution(state);if(!solution){$('hinttext').textContent='この状態は解けないよ';return}if(solution.length===0){$('hinttext').textContent='もうクリアしているよ！';return}hintCell=solution[0];$('hinttext').textContent=`緑の枠を押すと、最短解のひとつに進めるよ（残り${solution.length}手）`;render()});
