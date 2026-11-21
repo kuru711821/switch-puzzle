@@ -235,6 +235,9 @@ function se(kind){
 }
 const stageTracks = ['Dark Times', 'Dark Times', 'Darkest Child', 'Darkest Child', 'Five Armies'];
 const musicButton = $('bgm');
+let musicEnabled = true;
+try { musicEnabled = localStorage.getItem('switch25-bgm') !== 'off'; } catch {}
+let awaitingGesture = false;
 let player = null;
 let currentTrack = '';
 
@@ -253,14 +256,17 @@ function stopStageMusic() {
 
 function playStageMusic() {
   stopStageMusic();
+  awaitingGesture = false;
   currentTrack = stageTracks[stage];
   const track = new Audio();
   player = track;
   track.loop = true;
   track.volume = 0.32;
-  function playbackFailed() {
+  function playbackFailed(error) {
     if (player !== track) return;
     stopStageMusic();
+    awaitingGesture = error.name === 'NotAllowedError';
+    if (awaitingGesture) return;
     $('hinttext').textContent = 'BGMを読み込めなかったよ。通信状況を確認して再生を押してね。';
   }
   track.onerror = playbackFailed;
@@ -270,8 +276,24 @@ function playStageMusic() {
   track.play().catch(playbackFailed);
 }
 
-musicButton.addEventListener('click', () => player ? stopStageMusic() : playStageMusic());
-document.addEventListener('visibilitychange', () => { if (document.hidden) stopStageMusic(); });
+musicButton.addEventListener('click', () => {
+  musicEnabled = !player;
+  awaitingGesture = false;
+  try { localStorage.setItem('switch25-bgm', musicEnabled ? 'on' : 'off'); } catch {}
+  if (musicEnabled) playStageMusic();
+  else stopStageMusic();
+});
+
+document.addEventListener('click', event => {
+  if (awaitingGesture && musicEnabled && !document.hidden && !musicButton.contains(event.target)) {
+    playStageMusic();
+  }
+}, true);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopStageMusic();
+  else if (musicEnabled) playStageMusic();
+});
 function renderSound(){const b=$('sound');b.textContent=soundOn?'🔊 効果音 ON':'🔇 効果音 OFF';b.setAttribute('aria-pressed',String(soundOn))}
 $('sound').addEventListener('click',()=>{
   soundOn=!soundOn;
@@ -321,4 +343,5 @@ function render(){const clear=state.every(Boolean);$('moves').textContent=moves;
 function optimalSolution(board){const a=[];for(let i=0;i<25;i++){let mask=0;for(let j=0;j<25;j++)if(Math.abs((i/5|0)-(j/5|0))+Math.abs(i%5-j%5)<=1)mask|=1<<j;a.push({mask,rhs:1-board[i]})}const pivots=[];let r=0;for(let c=0;c<25;c++){let p=-1;for(let k=r;k<25;k++)if((a[k].mask>>>c)&1){p=k;break}if(p<0)continue;[a[r],a[p]]=[a[p],a[r]];for(let k=0;k<25;k++)if(k!==r&&((a[k].mask>>>c)&1)){a[k].mask^=a[r].mask;a[k].rhs^=a[r].rhs}pivots.push(c);r++}for(let k=r;k<25;k++)if(!a[k].mask&&a[k].rhs)return null;const free=[];for(let c=0;c<25;c++)if(!pivots.includes(c))free.push(c);let best=null;for(let v=0;v<(1<<free.length);v++){let x=0;free.forEach((c,j)=>{if((v>>>j)&1)x|=1<<c});for(let k=r-1;k>=0;k--){const c=pivots[k];let parity=0;let bits=(a[k].mask&~(1<<c))&x;while(bits){parity^=1;bits&=bits-1}if(a[k].rhs^parity)x|=1<<c}const pos=[];for(let j=0;j<25;j++)if((x>>>j)&1)pos.push(j);if(best===null||pos.length<best.length)best=pos}return best}
 $('reset').addEventListener('click',()=>{se('reset');start(stage)});$('next').addEventListener('click',()=>{se('transition');start((stage+1)%5)});$('hint').addEventListener('click',()=>{se('hint');const solution=optimalSolution(state);if(!solution){$('hinttext').textContent='この状態は解けないよ';return}if(solution.length===0){$('hinttext').textContent='もうクリアしているよ！';return}hintCell=solution[0];$('hinttext').textContent=`緑の枠を押すと、最短解のひとつに進めるよ（残り${solution.length}手）`;render()});
 start(stage);
+if (musicEnabled && !document.hidden) playStageMusic();
 </script></body></html>
