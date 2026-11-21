@@ -394,6 +394,7 @@ function playStageMusic() {
   track.src = 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/' + encodeURIComponent(currentTrack) + '.mp3';
   // The opening four seconds of Dark Times are silent.
   if (entering && currentTrack === 'Dark Times') track.currentTime = 4;
+  if (currentTrack === 'Five Armies') track.currentTime = 2.1;
   musicButton.textContent = '♫ BGM 停止';
   musicButton.setAttribute('aria-pressed', 'true');
   if (entering) {
