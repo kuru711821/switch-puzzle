@@ -60,6 +60,52 @@ h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,
     animation-delay: 90ms;
   }
   .cell.ripple .sigil { animation: sigilSurge 460ms ease-out var(--delay); }
+  .cell.origin .sigil { animation: sealLift 400ms ease-out; }
+  .cell.ripple.on::after {
+    background: radial-gradient(ellipse at 50% 70%, #fff9bd, #ffb73299 34%, transparent 70%);
+    animation: sealFlame 520ms ease-out var(--delay);
+  }
+  .cell.ripple:not(.on)::after {
+    border-color: #b3edff;
+    box-shadow: 0 0 10px #50cfff, inset 0 0 15px #a6ddff;
+    animation: sealCollapse 410ms ease-in var(--delay);
+  }
+  .seal-bolt {
+    position: absolute;
+    pointer-events: none;
+    left: 50%;
+    top: 50%;
+    height: 18%;
+    transform-origin: left center;
+    transform: translateY(-50%) rotate(var(--direction));
+    filter: drop-shadow(0 0 3px #47bdff);
+    opacity: 0;
+    animation: boltTravel 300ms ease-out;
+  }
+  .seal-bolt::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, #48baff, #fff 56%, #80e3ff);
+    clip-path: polygon(0 49%, 33% 32%, 29% 55%, 61% 8%, 55% 54%, 100% 44%, 50% 76%, 54% 36%, 22% 91%, 26% 51%, 0 59%);
+  }
+  @keyframes boltTravel {
+    0% { opacity: 1; clip-path: inset(-50% 100% -50% -5%); }
+    45% { opacity: 1; clip-path: inset(-50% -5% -50% -5%); }
+    100% { opacity: 0; }
+  }
+  @keyframes sealLift {
+    35% { transform: translateY(-14%) scale(1.45); color: white; text-shadow: 0 0 12px #8cefff; }
+  }
+  @keyframes sealFlame {
+    0% { opacity: .95; transform: scale(.35); }
+    45% { opacity: .85; }
+    100% { opacity: 0; transform: translateY(-14%) scale(1.25); }
+  }
+  @keyframes sealCollapse {
+    from { opacity: .9; transform: scale(1.12); }
+    to { opacity: 0; transform: scale(.08); }
+  }
   .ember {
     position: absolute;
     left: 50%;
@@ -461,6 +507,19 @@ function press(i) {
   const origin = cells[i];
   origin.classList.add('origin');
   if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const start = origin.getBoundingClientRect();
+    for (const index of affected) {
+      if (index === i) continue;
+      const target = cells[index].getBoundingClientRect();
+      const dx = target.left + target.width / 2 - start.left - start.width / 2;
+      const dy = target.top + target.height / 2 - start.top - start.height / 2;
+      const bolt = document.createElement('span');
+      bolt.className = 'seal-bolt';
+      bolt.setAttribute('aria-hidden', 'true');
+      bolt.style.width = Math.hypot(dx, dy) + 'px';
+      bolt.style.setProperty('--direction', Math.atan2(dy, dx) + 'rad');
+      origin.append(bolt);
+    }
     for (let angle = 0; angle < 360; angle += 45) {
       const ember = document.createElement('span');
       ember.className = 'ember';
