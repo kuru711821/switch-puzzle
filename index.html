@@ -274,8 +274,10 @@ function se(kind){
   const ctx=audio();if(!ctx)return;
   const t=ctx.currentTime+0.015;
   if(kind==='switch'){
-    // Short muted bell; keeps frequent button presses unobtrusive.
-    seBell(ctx,50,t,0.26,0.065);
+    // Low D toll, with a softer minor third above the octave.
+    seImpact(ctx,t,0.095);
+    seBell(ctx,38,t+0.014,1.30,0.15);
+    seBell(ctx,53,t+0.048,0.82,0.055);
   }else if(kind==='transition'){
     // Deep "D E E E N" for moving to another stage.
     seImpact(ctx,t,0.095);
