@@ -11,7 +11,7 @@ html{min-height:100%;background:#080e17}
 body{margin:0;min-height:100svh;padding:clamp(12px,2vw,30px);display:flex;justify-content:center;align-items:center;background:radial-gradient(ellipse at 50% 26%,#3c4d64 0%,transparent 40%),linear-gradient(90deg,#090d13 0%,#1a2533 25%,#1c2839 50%,#1a2533 75%,#090d13 100%);overflow-x:hidden;position:relative}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.30;background:repeating-linear-gradient(90deg,transparent 0 12%,#0b1018 12.15% 13%,#465263 13.1% 13.35%,transparent 13.55% 25%),repeating-linear-gradient(0deg,transparent 0 105px,#64738618 107px 110px,transparent 113px 215px)}
 body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,#d4def929,transparent 36%),linear-gradient(to top,#030609dd,transparent 35%);z-index:0}
-.app{position:relative;z-index:1;width:min(100%,1240px);min-height:700px;padding:26px clamp(14px,3vw,38px) 22px;border:1px solid #8f7347a8;outline:1px solid #312e29;outline-offset:-7px;background:linear-gradient(#0a1019c9,#111b29e8),repeating-linear-gradient(125deg,#ffffff08 0 1px,transparent 1px 7px);box-shadow:0 24px 90px #000c,inset 0 0 65px #0009;border-radius:5px}
+.app{position:relative;z-index:1;width:min(100%,1240px);padding:26px clamp(14px,3vw,38px) 22px;border:1px solid #8f7347a8;outline:1px solid #312e29;outline-offset:-7px;background:linear-gradient(#0a1019c9,#111b29e8),repeating-linear-gradient(125deg,#ffffff08 0 1px,transparent 1px 7px);box-shadow:0 24px 90px #000c,inset 0 0 65px #0009;border-radius:5px}
 .app:before,.app:after{content:"✦";position:absolute;top:8px;color:#af8950;font-size:21px}.app:before{left:12px}.app:after{right:12px}
 .mast{text-align:center;margin:3px auto 14px;position:relative}
 .eyebrow{font-size:10px;letter-spacing:.35em;color:#c2a879;text-transform:uppercase}
@@ -118,6 +118,38 @@ h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,
 @media(max-width:850px){.app{padding:20px 14px}.layout{grid-template-columns:1fr}.side{padding:0}.side-panel{padding:10px 12px}.side-heading{margin:0 0 9px;font-size:13px;padding-bottom:7px}.levels{flex-direction:row;gap:6px}.level{flex:1;min-height:40px}.side.right{order:3}.center{order:2}.side.left{order:1}.side.right .side-panel{display:flex;gap:14px;align-items:center;justify-content:space-between}.side.right .side-heading{display:none}.counter strong{display:inline;font-size:25px;margin-left:8px}.goal{border:0;padding:0}.altar{max-width:590px;margin:auto}.mast{margin-bottom:20px}}
 @media(max-width:480px){body{padding:7px}.app{padding:15px 9px}.altar{padding:10px;border-width:5px}.boardwrap{padding:8px}.board{gap:4px}.cell{border-width:1px}.cell:before{inset:3px}.sigil{font-size:clamp(15px,5.2vw,24px)}.goal{font-size:10px}.candle{display:none}.buttons{gap:5px}.soundbar{gap:6px}.sound-toggle{font-size:11px;padding:7px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Size the square altar from the available height as well as the width. */
+@media (min-width:851px) {
+  body { padding: clamp(12px, 2vh, 24px) clamp(20px, 4vw, 64px); }
+  .app {
+    --altar-width: clamp(254px, calc(100svh - 370px), 620px);
+    width: min(100%, calc(var(--altar-width) + 500px));
+    padding: 16px clamp(16px, 2vw, 30px);
+  }
+  .layout {
+    grid-template-columns: minmax(130px, 1fr) minmax(0, var(--altar-width)) minmax(130px, 1fr);
+    gap: clamp(14px, 2vw, 28px);
+  }
+  .side { align-self: center; padding-top: 0; }
+  .mast { margin: 0 auto 16px; }
+  .halo { font-size: 16px; }
+  h1 { font-size: clamp(28px, 4.5vh, 43px); }
+  .altar { padding: clamp(10px, 1.6vh, 18px); }
+  .boardwrap { padding: clamp(8px, 1.2vh, 14px); }
+  .cell { padding: 0; }
+  .sigil { font-size: clamp(15px, 3vh, 30px); }
+  .message { min-height: 0; margin: 10px 0; }
+  .action { padding-block: 9px; }
+  .hinttext:empty { display: none; }
+  .footer { margin-top: 7px; }
+}
+@media (max-width:850px) {
+  body { padding: 12px clamp(12px, 3vw, 24px); }
+  .app { max-width: 620px; }
+  .altar { width: min(100%, clamp(265px, calc(100svh - 375px), 510px)); }
+  .message { min-height: 0; margin: 12px 0; }
+  .hinttext:empty { display: none; }
+}
 /* The entrance seal uses local shapes so it appears before any music loads. */
 .loading-screen {
   position: fixed;
