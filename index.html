@@ -160,12 +160,27 @@ h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,
     to { transform: rotate(45deg); opacity: 1; }
   }
 }
+.loading-start {
+  display: grid;
+  justify-items: center;
+  gap: 26px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  padding: 12px;
+}
+.loading-start:enabled { cursor: pointer; }
+.loading-start:focus-visible { outline: 2px solid #f3d58c; outline-offset: 6px; }
 </style>
 </head>
 <body>
-<div class="loading-screen" id="loading-screen" role="status">
-  <span class="loading-seal" aria-hidden="true">✦</span>
-  <span>祭壇を目覚めさせています…</span>
+<div class="loading-screen" id="loading-screen">
+  <button type="button" class="loading-start" id="loading-start" disabled>
+    <span class="loading-seal" aria-hidden="true">✦</span>
+    <span id="loading-label" aria-live="polite">祭壇を目覚めさせています…</span>
+  </button>
 </div>
 <main class="app" inert>
 <header class="mast"><div class="halo" aria-hidden="true">✧ ✦ ✧</div><div class="eyebrow">THE RUINED SANCTUARY</div><h1>SWITCH / 25</h1><p class="lead">古き祭壇に光を灯せ。押した紋章と上下左右の封印が反転する。</p></header>
@@ -288,7 +303,13 @@ let awaitingGesture = false;
 let player = null;
 let currentTrack = '';
 
+const loadingScreen = $('loading-screen');
+const loadingStart = $('loading-start');
+let entering = true;
+let loadingTimeout;
+
 function stopStageMusic() {
+  clearTimeout(loadingTimeout);
   if (player) {
     player.onerror = null;
     player.pause();
@@ -313,14 +334,28 @@ function playStageMusic() {
     if (player !== track) return;
     stopStageMusic();
     awaitingGesture = error.name === 'NotAllowedError';
-    if (awaitingGesture) return;
+    if (awaitingGesture) {
+      if (entering) {
+        loadingStart.disabled = false;
+        $('loading-label').textContent = 'タップして開始';
+      }
+      return;
+    }
+    revealBoard();
     $('hinttext').textContent = 'BGMを読み込めなかったよ。通信状況を確認して再生を押してね。';
   }
   track.onerror = playbackFailed;
   track.src = 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/' + encodeURIComponent(currentTrack) + '.mp3';
   musicButton.textContent = '♫ BGM 停止';
   musicButton.setAttribute('aria-pressed', 'true');
-  track.play().catch(playbackFailed);
+  if (entering) {
+    loadingStart.disabled = true;
+    $('loading-label').textContent = 'BGMを読み込み中…';
+    loadingTimeout = setTimeout(() => playbackFailed(new Error('Music loading timed out')), 12000);
+  }
+  track.play().then(() => {
+    if (player === track) revealBoard();
+  }, playbackFailed);
 }
 
 musicButton.addEventListener('click', () => {
@@ -332,7 +367,7 @@ musicButton.addEventListener('click', () => {
 });
 
 document.addEventListener('click', event => {
-  if (awaitingGesture && musicEnabled && !document.hidden && !musicButton.contains(event.target)) {
+  if (!entering && awaitingGesture && musicEnabled && !document.hidden && !musicButton.contains(event.target)) {
     playStageMusic();
   }
 }, true);
@@ -390,18 +425,25 @@ function render(){const clear=state.every(Boolean);$('moves').textContent=moves;
 function optimalSolution(board){const a=[];for(let i=0;i<25;i++){let mask=0;for(let j=0;j<25;j++)if(Math.abs((i/5|0)-(j/5|0))+Math.abs(i%5-j%5)<=1)mask|=1<<j;a.push({mask,rhs:1-board[i]})}const pivots=[];let r=0;for(let c=0;c<25;c++){let p=-1;for(let k=r;k<25;k++)if((a[k].mask>>>c)&1){p=k;break}if(p<0)continue;[a[r],a[p]]=[a[p],a[r]];for(let k=0;k<25;k++)if(k!==r&&((a[k].mask>>>c)&1)){a[k].mask^=a[r].mask;a[k].rhs^=a[r].rhs}pivots.push(c);r++}for(let k=r;k<25;k++)if(!a[k].mask&&a[k].rhs)return null;const free=[];for(let c=0;c<25;c++)if(!pivots.includes(c))free.push(c);let best=null;for(let v=0;v<(1<<free.length);v++){let x=0;free.forEach((c,j)=>{if((v>>>j)&1)x|=1<<c});for(let k=r-1;k>=0;k--){const c=pivots[k];let parity=0;let bits=(a[k].mask&~(1<<c))&x;while(bits){parity^=1;bits&=bits-1}if(a[k].rhs^parity)x|=1<<c}const pos=[];for(let j=0;j<25;j++)if((x>>>j)&1)pos.push(j);if(best===null||pos.length<best.length)best=pos}return best}
 $('reset').addEventListener('click',()=>{se('reset');start(stage)});$('next').addEventListener('click',()=>{se('transition');start((stage+1)%5)});$('hint').addEventListener('click',()=>{se('hint');const solution=optimalSolution(state);if(!solution){$('hinttext').textContent='この状態は解けないよ';return}if(solution.length===0){$('hinttext').textContent='もうクリアしているよ！';return}hintCell=solution[0];$('hinttext').textContent=`緑の枠を押すと、最短解のひとつに進めるよ（残り${solution.length}手）`;render()});
 function revealBoard() {
-  document.querySelector('.app').removeAttribute('inert');
-  $('loading-screen').remove();
+  if (!entering) return;
+  entering = false;
+  clearTimeout(loadingTimeout);
+  function finish() {
+    loadingScreen.remove();
+    document.querySelector('.app').removeAttribute('inert');
+  }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !loadingScreen.animate) {
+    finish();
+    return;
+  }
+  const fade = loadingScreen.animate([{opacity: 1}, {opacity: 0}], {
+    duration: 280, easing: 'ease-out', fill: 'forwards'
+  });
+  fade.finished.then(finish, finish);
 }
 
+loadingStart.addEventListener('click', playStageMusic);
 start(stage);
-if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  revealBoard();
-} else {
-  const entrance = $('loading-screen').animate([{opacity: 1}, {opacity: 0}], {
-    delay: 700, duration: 280, easing: 'ease-out', fill: 'forwards'
-  });
-  entrance.finished.then(revealBoard, revealBoard);
-}
-if (musicEnabled && !document.hidden) playStageMusic();
+if (!musicEnabled) revealBoard();
+else if (!document.hidden) playStageMusic();
 </script></body></html>
