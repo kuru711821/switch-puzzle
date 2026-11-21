@@ -213,7 +213,7 @@ function se(kind){
   const t=ctx.currentTime+0.015;
   if(kind==='switch'){
     // Short muted bell; keeps frequent button presses unobtrusive.
-    seBell(ctx,50,t,0.26,0.038);
+    seBell(ctx,50,t,0.26,0.065);
   }else if(kind==='transition'){
     // Deep "D E E E N" for moving to another stage.
     seImpact(ctx,t,0.095);
@@ -261,7 +261,7 @@ function playStageMusic() {
   const track = new Audio();
   player = track;
   track.loop = true;
-  track.volume = 0.32;
+  track.volume = 0.20;
   function playbackFailed(error) {
     if (player !== track) return;
     stopStageMusic();
