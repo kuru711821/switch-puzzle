@@ -191,7 +191,7 @@ async function startBgm(){
     bgmMaster.gain.value=0.52;
     bgmMaster.connect(ctx.destination);
     // Gentle room ambience, in addition to the unmodified sampled piano recordings.
-    if(!bgmReverb)bgmReverb=createRoom(ctx);
+    bgmReverb=createRoom(ctx);
     const wet=ctx.createGain();wet.gain.value=0.18;
     bgmMaster.connect(bgmReverb);bgmReverb.connect(wet);wet.connect(ctx.destination);
     bgmPlaying=true;bgmBeatIndex=0;bgmNextTime=ctx.currentTime+0.09;
