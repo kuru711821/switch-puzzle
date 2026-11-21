@@ -39,6 +39,24 @@ h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,
 .board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(4px,.7vw,8px)}
 .cell{min-width:0;aspect-ratio:1;border-radius:2px;border:2px solid #696159;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;color:#7a7772;background:linear-gradient(135deg,#555757,#303337 28%,#25292e 65%,#45494b);box-shadow:inset 1px 2px 4px #aeb8b431,inset -3px -4px 8px #0009,0 2px 4px #0008;position:relative;transition:transform .15s,box-shadow .22s,border-color .22s}
 .cell:before{content:"";position:absolute;inset:5px;border:1px solid #b5a79329;pointer-events:none}
+@media (prefers-reduced-motion: no-preference) {
+  .cell.ripple::after {
+    content: "";
+    position: absolute;
+    inset: 8%;
+    border: 2px solid #e8ce91;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #e7b86099;
+    opacity: 0;
+    pointer-events: none;
+    animation: sigilRipple 360ms ease-out 65ms;
+  }
+  .cell.ripple.origin::after { animation-delay: 0ms; border-color: #fff0c9; }
+  @keyframes sigilRipple {
+    from { transform: scale(.25); opacity: .9; }
+    to { transform: scale(1.06); opacity: 0; }
+  }
+}
 .cell:active{transform:scale(.94)}
 .cell.on{color:#ffe7a9;border-color:#d3a35e;background:radial-gradient(circle,#b68b416e 0%,#4d4130 42%,#252a30 90%);box-shadow:inset 0 0 17px #ffe1a246,0 0 12px #ebb65773,0 2px 4px #0009}
 .cell.hint{outline:2px solid #9ed7d5;outline-offset:-5px;animation:hintPulse 1.4s infinite}
@@ -230,7 +248,30 @@ renderSound();
 const sigils=['✧','☽','☼','♜','✝','❧','✥','✦','♛','♧','⌛','✺','✟','❖','☾','⚖','❀','♜','✷','♣','♨','✶','⚜','▤','♕'];
 function save(){try{localStorage.setItem('switch25-progress',JSON.stringify({stage,completed}))}catch{}}
 function start(n){stage=n;state=LEVELS[n].initial.slice();moves=0;hintCell=-1;$('hinttext').textContent='';save();render();if (player && currentTrack !== stageTracks[n]) playStageMusic()}
-function press(i){if(state.every(Boolean))return;for(let j=0;j<25;j++){if(Math.abs(Math.floor(i/5)-Math.floor(j/5))+Math.abs(i%5-j%5)<=1)state[j]^=1}moves++;se('switch');hintCell=-1;$('hinttext').textContent='';if(state.every(Boolean)){if(!completed.includes(stage))completed.push(stage);save();se('clear')}render()}
+function press(i) {
+  if (state.every(Boolean)) return;
+  const affected = [];
+  for (let j = 0; j < state.length; j++) {
+    const distance = Math.abs(Math.floor(i / 5) - Math.floor(j / 5)) + Math.abs(i % 5 - j % 5);
+    if (distance <= 1) {
+      state[j] ^= 1;
+      affected.push(j);
+    }
+  }
+  moves++;
+  se('switch');
+  hintCell = -1;
+  $('hinttext').textContent = '';
+  if (state.every(Boolean)) {
+    if (!completed.includes(stage)) completed.push(stage);
+    save();
+    se('clear');
+  }
+  render();
+  const cells = $('board').children;
+  for (const index of affected) cells[index].classList.add('ripple');
+  cells[i].classList.add('origin');
+}
 function render(){const clear=state.every(Boolean);$('moves').textContent=moves;$('lit').textContent=state.filter(Boolean).length+' / 25 点灯';$('title').textContent=clear?'🎉 CLEAR!':`LEVEL ${stage+1} — ${LEVELS[stage].name}`;$('description').textContent=clear?`${moves}手でクリア！ 目標手数は${LEVELS[stage].par}手`:`目標手数：${LEVELS[stage].par}手｜すべて点灯させよう`;$('next').textContent=stage===4?'最初から ↻':'NEXT ❯';$('board').innerHTML='';state.forEach((on,i)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(hintCell===i?' hint':'');b.setAttribute('aria-label',`${Math.floor(i/5)+1}行${i%5+1}列：${on?'点灯':'消灯'}`);b.setAttribute('aria-pressed',!!on);b.innerHTML='<span class="sigil" aria-hidden="true">'+sigils[i]+'</span>';b.addEventListener('click',()=>press(i));$('board').append(b)});$('levels').innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.className='level'+(i===stage?' active':'')+(completed.includes(i)?' completed':'');b.textContent=i+1;b.setAttribute('aria-label',`レベル${i+1} ${l.name}`);b.setAttribute('aria-current',i===stage?'step':'false');b.addEventListener('click',()=>start(i));$('levels').append(b)})}
 // 現在の盤面を必ず解けるようにするGF(2)ガウス消去と最小手数探索。
 function optimalSolution(board){const a=[];for(let i=0;i<25;i++){let mask=0;for(let j=0;j<25;j++)if(Math.abs((i/5|0)-(j/5|0))+Math.abs(i%5-j%5)<=1)mask|=1<<j;a.push({mask,rhs:1-board[i]})}const pivots=[];let r=0;for(let c=0;c<25;c++){let p=-1;for(let k=r;k<25;k++)if((a[k].mask>>>c)&1){p=k;break}if(p<0)continue;[a[r],a[p]]=[a[p],a[r]];for(let k=0;k<25;k++)if(k!==r&&((a[k].mask>>>c)&1)){a[k].mask^=a[r].mask;a[k].rhs^=a[r].rhs}pivots.push(c);r++}for(let k=r;k<25;k++)if(!a[k].mask&&a[k].rhs)return null;const free=[];for(let c=0;c<25;c++)if(!pivots.includes(c))free.push(c);let best=null;for(let v=0;v<(1<<free.length);v++){let x=0;free.forEach((c,j)=>{if((v>>>j)&1)x|=1<<c});for(let k=r-1;k>=0;k--){const c=pivots[k];let parity=0;let bits=(a[k].mask&~(1<<c))&x;while(bits){parity^=1;bits&=bits-1}if(a[k].rhs^parity)x|=1<<c}const pos=[];for(let j=0;j<25;j++)if((x>>>j)&1)pos.push(j);if(best===null||pos.length<best.length)best=pos}return best}
