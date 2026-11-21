@@ -40,21 +40,55 @@ h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,
 .cell{min-width:0;aspect-ratio:1;border-radius:2px;border:2px solid #696159;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;color:#7a7772;background:linear-gradient(135deg,#555757,#303337 28%,#25292e 65%,#45494b);box-shadow:inset 1px 2px 4px #aeb8b431,inset -3px -4px 8px #0009,0 2px 4px #0008;position:relative;transition:transform .15s,box-shadow .22s,border-color .22s}
 .cell:before{content:"";position:absolute;inset:5px;border:1px solid #b5a79329;pointer-events:none}
 @media (prefers-reduced-motion: no-preference) {
-  .cell.ripple::after {
+  .cell.ripple { --delay: 85ms; z-index: 1; }
+  .cell.ripple.origin { --delay: 0ms; z-index: 2; }
+  .cell.ripple::after, .cell.ripple.origin::before {
     content: "";
     position: absolute;
-    inset: 8%;
-    border: 2px solid #e8ce91;
+    pointer-events: none;
+    inset: 9%;
+    border: 2px solid #ffe5a0;
     border-radius: 50%;
-    box-shadow: 0 0 6px #e7b86099;
+    box-shadow: 0 0 7px #ffb74c, inset 0 0 6px #ffc653;
+    opacity: 0;
+    animation: altarRing 520ms ease-out var(--delay);
+  }
+  .cell.ripple.origin::before {
+    inset: 1%;
+    border-color: #d7ffff;
+    box-shadow: 0 0 9px #80e9ff;
+    animation-delay: 90ms;
+  }
+  .cell.ripple .sigil { animation: sigilSurge 460ms ease-out var(--delay); }
+  .ember {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 18%;
+    border-radius: 50%;
+    background: #fff3c5;
+    box-shadow: 0 0 5px 1px #ffab38;
     opacity: 0;
     pointer-events: none;
-    animation: sigilRipple 360ms ease-out 65ms;
+    animation: altarEmber 540ms ease-out;
   }
-  .cell.ripple.origin::after { animation-delay: 0ms; border-color: #fff0c9; }
-  @keyframes sigilRipple {
-    from { transform: scale(.25); opacity: .9; }
-    to { transform: scale(1.06); opacity: 0; }
+  .ember:nth-of-type(even) {
+    height: 12%;
+    background: #dfffff;
+    box-shadow: 0 0 5px #72eafa;
+    animation-duration: 650ms;
+  }
+  @keyframes altarRing {
+    from { transform: scale(.28); opacity: .95; }
+    to { transform: scale(1.55); opacity: 0; }
+  }
+  @keyframes sigilSurge {
+    24% { transform: scale(1.32); color: #fff7d4; text-shadow: 0 0 12px #ffd577; }
+  }
+  @keyframes altarEmber {
+    from { opacity: .95; transform: translate(-50%,-50%) rotate(var(--angle)) translateY(-75%); }
+    to { opacity: 0; transform: translate(-50%,-50%) rotate(var(--angle)) translateY(-420%) scale(.6); }
   }
 }
 .cell:active{transform:scale(.94)}
@@ -270,7 +304,17 @@ function press(i) {
   render();
   const cells = $('board').children;
   for (const index of affected) cells[index].classList.add('ripple');
-  cells[i].classList.add('origin');
+  const origin = cells[i];
+  origin.classList.add('origin');
+  if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    for (let angle = 0; angle < 360; angle += 45) {
+      const ember = document.createElement('span');
+      ember.className = 'ember';
+      ember.setAttribute('aria-hidden', 'true');
+      ember.style.setProperty('--angle', angle + 'deg');
+      origin.append(ember);
+    }
+  }
 }
 function render(){const clear=state.every(Boolean);$('moves').textContent=moves;$('lit').textContent=state.filter(Boolean).length+' / 25 点灯';$('title').textContent=clear?'🎉 CLEAR!':`LEVEL ${stage+1} — ${LEVELS[stage].name}`;$('description').textContent=clear?`${moves}手でクリア！ 目標手数は${LEVELS[stage].par}手`:`目標手数：${LEVELS[stage].par}手｜すべて点灯させよう`;$('next').textContent=stage===4?'最初から ↻':'NEXT ❯';$('board').innerHTML='';state.forEach((on,i)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(hintCell===i?' hint':'');b.setAttribute('aria-label',`${Math.floor(i/5)+1}行${i%5+1}列：${on?'点灯':'消灯'}`);b.setAttribute('aria-pressed',!!on);b.innerHTML='<span class="sigil" aria-hidden="true">'+sigils[i]+'</span>';b.addEventListener('click',()=>press(i));$('board').append(b)});$('levels').innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.className='level'+(i===stage?' active':'')+(completed.includes(i)?' completed':'');b.textContent=i+1;b.setAttribute('aria-label',`レベル${i+1} ${l.name}`);b.setAttribute('aria-current',i===stage?'step':'false');b.addEventListener('click',()=>start(i));$('levels').append(b)})}
 // 現在の盤面を必ず解けるようにするGF(2)ガウス消去と最小手数探索。
