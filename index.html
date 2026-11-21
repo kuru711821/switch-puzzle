@@ -16,7 +16,7 @@
 <section class="boardwrap"><div class="board" id="board" aria-label="5×5のスイッチ盤面"></div><div class="status"><span><i class="swatch" style="background:#f5c94f"></i>点灯　<i class="swatch" style="background:#35465f"></i>消灯</span><span id="lit">0 / 25 点灯</span></div></section>
 <div class="message" aria-live="polite"><b id="title">LEVEL 1</b><small id="description">全部点灯させよう</small></div>
 <div class="buttons"><button class="action" id="reset">↻ リセット</button><button class="action" id="hint">💡 ヒント</button><button class="action primary" id="next">次の問題 →</button></div>
-<div class="hinttext" id="hinttext" aria-live="polite"></div><div class="footer">5 STAGES • 進捗を端末に保存 • BGM音源の初回読込には通信が必要</div><div class="footer">Piano samples: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">Salamander Grand Piano V3</a> by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">CC BY 3.0</a>). Original arrangement; samples pitch-shifted and mixed.</div>
+<div class="hinttext" id="hinttext" aria-live="polite"></div><div class="footer">5 STAGES • 進捗を端末に保存 • BGM音源の初回読込には通信が必要</div><div class="footer">Piano samples: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">Salamander Grand Piano V3</a> by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">CC BY 3.0</a>). Orchestral samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener noreferrer" style="color:#a7bad1">tonejs-instruments</a> (CC BY 3.0; violin, cello, French horn, harmonium). Original arrangement; samples pitch-shifted and mixed. The harmonium supplies choir-like texture, not recorded vocals.</div>
 </main>
 <script>
 'use strict';
@@ -82,6 +82,44 @@ const PIANO_SAMPLES=[
 ];
 const PIANO_URL='https://tonejs.github.io/audio/salamander/';
 let pianoBuffers=null,pianoLoading=null,bgmPlaying=false,bgmTimer=null;
+const ENSEMBLE_URL='https://cdn.jsdelivr.net/gh/nbrosowsky/tonejs-instruments@master/samples/';
+const ENSEMBLE_SAMPLES={
+  violin:[['A3',57],['C4',60],['E4',64],['A4',69],['C5',72],['E5',76]],
+  cello:[['C2',36],['C3',48],['D3',50],['C4',60],['D4',62]],
+  'french-horn':[['A3',57],['C4',60],['D3',50],['F3',53]],
+  harmonium:[['A3',57],['C3',48],['C4',60],['A4',69]]
+};
+let ensembleBuffers={},ensembleLoading=null;
+async function loadEnsemble(ctx){
+  if(ensembleLoading)return ensembleLoading;
+  ensembleLoading=Promise.all(Object.entries(ENSEMBLE_SAMPLES).map(async ([instrument,notes])=>{
+    const results=await Promise.allSettled(notes.map(async ([name,midi])=>{
+      const response=await fetch(ENSEMBLE_URL+instrument+'/'+name+'.mp3');
+      if(!response.ok)throw Error('sample '+instrument+'/'+name);
+      return {midi,buffer:await ctx.decodeAudioData(await response.arrayBuffer())};
+    }));
+    const samples=results.filter(x=>x.status==='fulfilled').map(x=>x.value);
+    if(samples.length)ensembleBuffers[instrument]=samples;
+  })).finally(()=>{ensembleLoading=null});
+  return ensembleLoading;
+}
+function ensembleNote(ctx,instrument,midi,time,duration,volume=0.05,attack=0.13){
+  const samples=ensembleBuffers[instrument];
+  if(!samples||!samples.length||!bgmMaster)return;
+  let selected=samples[0];
+  for(const sample of samples)if(Math.abs(sample.midi-midi)<Math.abs(selected.midi-midi))selected=sample;
+  const source=ctx.createBufferSource(),gain=ctx.createGain(),rate=Math.pow(2,(midi-selected.midi)/12);
+  source.buffer=selected.buffer;source.playbackRate.value=rate;
+  const audible=Math.min(duration,Math.max(0,selected.buffer.duration/rate-0.03));
+  if(audible<=0.08)return;
+  const rise=Math.min(attack,audible*0.24);
+  gain.gain.setValueAtTime(0.0001,time);
+  gain.gain.linearRampToValueAtTime(volume,time+rise);
+  gain.gain.setValueAtTime(volume*0.8,time+Math.max(rise,audible*0.55));
+  gain.gain.linearRampToValueAtTime(0.0001,time+audible);
+  source.connect(gain);gain.connect(bgmMaster);
+  source.start(time);source.stop(time+audible+0.015);
+}
 let bgmMaster=null,bgmBeatIndex=0,bgmNextTime=0,bgmReverb=null;
 function getBgmContext(){
   try{
@@ -148,11 +186,20 @@ function bgmSchedule(){
       pianoNote(ctx,root-12,t,BGM_BEAT*3.7,0.16);
       pianoNote(ctx,root,t+0.08,BGM_BEAT*2.5,0.085);
       chord.forEach((note,i)=>pianoNote(ctx,note,t+0.10+i*0.085,BGM_BEAT*3.25,0.074));
+      // Low strings, middle strings and a restrained, voice-like harmonium pad.
+      ensembleNote(ctx,'cello',root-12,t,BGM_BEAT*3.7,0.080,0.18);
+      if(bar>=2)ensembleNote(ctx,'violin',chord[1]+12,t+0.08,BGM_BEAT*3.4,0.052,0.3);
+      if(bar>=4)chord.forEach((n,i)=>ensembleNote(ctx,'harmonium',n+12,t+0.08*i,BGM_BEAT*3.45,0.016,0.5));
+      // Horn statements begin midway and become stronger near the finale.
+      if(bar>=6&&bar%2===0){
+        ensembleNote(ctx,'french-horn',root+12,t+0.07,BGM_BEAT*3.1,bar>=12?0.087:0.063,0.22);
+      }
     }
     if(beat===2){
       pianoNote(ctx,root,t,BGM_BEAT*1.8,0.11);
       pianoNote(ctx,chord[1]+12,t+0.08,BGM_BEAT*1.8,0.076);
       if(bar>=8)pianoNote(ctx,chord[2]+12,t+0.22,BGM_BEAT*1.5,0.065);
+      if(bar>=8)ensembleNote(ctx,'violin',chord[2]+12,t+0.12,BGM_BEAT*1.6,0.049,0.21);
     }
     if(bar>=4&&beat===3){
       pianoNote(ctx,chord[(bar+step)%3]+12,t,BGM_BEAT*0.88,0.046);
@@ -185,6 +232,9 @@ async function startBgm(){
   button.disabled=true;
   try{
     await loadPianoSamples(ctx);
+    // Add recorded strings and horn. Loading failure of optional instruments
+    // never blocks the piano arrangement.
+    try{await loadEnsemble(ctx)}catch(err){console.warn('Optional orchestra samples unavailable',err)}
     // The user may have switched tabs while samples were loading.
     if(document.hidden)return;
     bgmMaster=ctx.createGain();
