@@ -270,10 +270,54 @@ function seImpact(ctx,time,level=0.085){
   o.connect(filter);filter.connect(g);g.connect(ctx.destination);
   o.start(time);o.stop(time+0.33);
 }
+let lastStoneStrike = null;
+function seStoneStrike(ctx, time) {
+  // Dampen the previous slab before the next impact, especially on fast taps.
+  if (lastStoneStrike) lastStoneStrike.gain.setTargetAtTime(0, time, 0.035);
+  const body = ctx.createGain();
+  body.connect(ctx.destination);
+  body.connect(seOutput(ctx));
+  lastStoneStrike = body;
+
+  // Impact, low body, and two close resonances that beat against each other.
+  const modes = [
+    [138, 43, 0.24, 0.32, 'sine'],
+    [75, 57, 0.15, 1.36, 'triangle'],
+    [187, 174, 0.09, 1.65, 'triangle'],
+    [193, 177, 0.067, 1.58, 'sine'],
+    [670, 420, 0.055, 0.13, 'triangle']
+  ];
+  let remaining = modes.length;
+  for (const [attackHz, tailHz, peak, duration, shape] of modes) {
+    const voice = ctx.createOscillator();
+    const envelope = ctx.createGain();
+    voice.type = shape;
+    voice.frequency.setValueAtTime(attackHz, time);
+    voice.frequency.exponentialRampToValueAtTime(tailHz, time + Math.min(duration, 0.18));
+    envelope.gain.setValueAtTime(0.0001, time);
+    envelope.gain.exponentialRampToValueAtTime(peak, time + 0.009);
+    envelope.gain.exponentialRampToValueAtTime(peak * 0.32, time + duration * 0.34);
+    envelope.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+    voice.connect(envelope);
+    envelope.connect(body);
+    voice.onended = () => {
+      voice.disconnect();
+      envelope.disconnect();
+      if (--remaining === 0) {
+        body.disconnect();
+        if (lastStoneStrike === body) lastStoneStrike = null;
+      }
+    };
+    voice.start(time);
+    voice.stop(time + duration);
+  }
+}
 function se(kind){
   const ctx=audio();if(!ctx)return;
   const t=ctx.currentTime+0.015;
   if(kind==='switch'){
+    seStoneStrike(ctx,t);
+  }else if(kind==='soundOn'){
     // Low D toll, with a softer minor third above the octave.
     seImpact(ctx,t,0.095);
     seBell(ctx,38,t+0.014,1.30,0.15);
@@ -384,7 +428,7 @@ function renderSound(){const b=$('sound');b.textContent=soundOn?'🔊 効果音 
 $('sound').addEventListener('click',()=>{
   soundOn=!soundOn;
   try{localStorage.setItem('switch25-sound',soundOn?'on':'off')}catch{}
-  renderSound();if(soundOn)se('switch');
+  renderSound();if(soundOn)se('soundOn');
 });
 renderSound();
 const sigils=['✧','☽','☼','♜','✝','❧','✥','✦','♛','♧','⌛','✺','✟','❖','☾','⚖','❀','♜','✷','♣','♨','✶','⚜','▤','♕'];
