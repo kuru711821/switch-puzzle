@@ -80,7 +80,7 @@ h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,
 <aside class="side right"><div class="side-panel"><h2 class="side-heading">✧ RECORD ✧</h2><div class="counter">MOVES<strong id="moves">0</strong></div><p class="goal">25の紋章を照らし<br>祭壇の封印を解き放て</p></div></aside>
 </div>
 <div class="footer">5 STAGES • 進捗を端末に保存 • BGM音源の初回読込には通信が必要</div>
-<div class="footer">Piano samples: <a href="https://github.com/sfzinstruments/SalamanderGrandPiano" target="_blank" rel="noopener noreferrer">Salamander Grand Piano V3</a> by Alexander Holm (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer">CC BY 3.0</a>). Orchestral samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener noreferrer">tonejs-instruments</a> (CC BY 3.0; violin, cello, French horn, harmonium). Original arrangement; samples pitch-shifted and mixed. The harmonium supplies choir-like texture, not recorded vocals.</div>
+<div class="footer">BGM・作曲 Kevin MacLeod ／ <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100747">Dark Times</a> · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100783">Darkest Child</a> · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100875">Five Armies</a> ／ <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div>
 </main>
 <script>
 'use strict';
@@ -181,212 +181,45 @@ function se(kind){
     seBell(ctx,62,t+0.18,1.15,0.053);
   }
 }
-// Original composition "Ashen Throne", played with genuine recorded grand piano samples.
-// Samples: Salamander Grand Piano V3 by Alexander Holm (CC BY 3.0).
-// https://github.com/sfzinstruments/SalamanderGrandPiano
-const BGM_BEAT=60/76;
-const BGM_ROOTS=[38,34,31,33,38,36,34,33,38,34,31,33,38,36,33,38];
-const BGM_CHORDS=[
- [50,53,57],[46,50,53],[43,46,50],[45,49,52],
- [50,53,57],[48,52,55],[46,50,53],[45,49,52],
- [50,53,57],[46,50,53],[43,46,50],[45,49,52],
- [50,53,57],[48,52,55],[45,49,52],[50,53,57]
-];
-const BGM_MELODY=[
- null,null,null,null, null,null,null,null,
- 74,null,77,76, 74,72,69,null,
- 70,null,72,74, 73,null,69,null,
- 74,77,81,79, 77,null,76,74,
- 72,null,74,77, 76,null,73,null,
- 74,null,77,81, 79,77,76,74,
- 73,null,76,73, 74,null,null,null
-];
-const PIANO_SAMPLES=[
- ['C2',36],['C3',48],['C4',60],['Ds4',63],
- ['Fs4',66],['A4',69],['C5',72],['Ds5',75],['Fs5',78],['C6',84]
-];
-const PIANO_URL='https://tonejs.github.io/audio/salamander/';
-let pianoBuffers=null,pianoLoading=null,bgmPlaying=false,bgmTimer=null;
-const ENSEMBLE_URL='https://cdn.jsdelivr.net/gh/nbrosowsky/tonejs-instruments@master/samples/';
-const ENSEMBLE_SAMPLES={
-  violin:[['A3',57],['C4',60],['E4',64],['A4',69],['C5',72],['E5',76]],
-  cello:[['C2',36],['C3',48],['D3',50],['C4',60],['D4',62]],
-  'french-horn':[['A3',57],['C4',60],['D3',50],['F3',53]],
-  harmonium:[['A3',57],['C3',48],['C4',60],['A4',69]]
-};
-let ensembleBuffers={},ensembleLoading=null;
-async function loadEnsemble(ctx){
-  if(ensembleLoading)return ensembleLoading;
-  ensembleLoading=Promise.all(Object.entries(ENSEMBLE_SAMPLES).map(async ([instrument,notes])=>{
-    const results=await Promise.allSettled(notes.map(async ([name,midi])=>{
-      const response=await fetch(ENSEMBLE_URL+instrument+'/'+name+'.mp3');
-      if(!response.ok)throw Error('sample '+instrument+'/'+name);
-      return {midi,buffer:await ctx.decodeAudioData(await response.arrayBuffer())};
-    }));
-    const samples=results.filter(x=>x.status==='fulfilled').map(x=>x.value);
-    if(samples.length)ensembleBuffers[instrument]=samples;
-  })).finally(()=>{ensembleLoading=null});
-  return ensembleLoading;
-}
-function ensembleNote(ctx,instrument,midi,time,duration,volume=0.05,attack=0.13){
-  const samples=ensembleBuffers[instrument];
-  if(!samples||!samples.length||!bgmMaster)return;
-  let selected=samples[0];
-  for(const sample of samples)if(Math.abs(sample.midi-midi)<Math.abs(selected.midi-midi))selected=sample;
-  const source=ctx.createBufferSource(),gain=ctx.createGain(),rate=Math.pow(2,(midi-selected.midi)/12);
-  source.buffer=selected.buffer;source.playbackRate.value=rate;
-  const audible=Math.min(duration,Math.max(0,selected.buffer.duration/rate-0.03));
-  if(audible<=0.08)return;
-  const rise=Math.min(attack,audible*0.24);
-  gain.gain.setValueAtTime(0.0001,time);
-  gain.gain.linearRampToValueAtTime(volume,time+rise);
-  gain.gain.setValueAtTime(volume*0.8,time+Math.max(rise,audible*0.55));
-  gain.gain.linearRampToValueAtTime(0.0001,time+audible);
-  source.connect(gain);gain.connect(bgmMaster);
-  source.start(time);source.stop(time+audible+0.015);
-}
-let bgmMaster=null,bgmBeatIndex=0,bgmNextTime=0,bgmReverb=null;
-function getBgmContext(){
-  try{
-    const Ctx=window.AudioContext||window.webkitAudioContext;
-    if(!Ctx)return null;
-    if(!audioContext)audioContext=new Ctx();
-    if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
-    return audioContext;
-  }catch{return null}
-}
-async function loadPianoSamples(ctx){
-  if(pianoBuffers)return pianoBuffers;
-  if(pianoLoading)return pianoLoading;
-  pianoLoading=Promise.all(PIANO_SAMPLES.map(async ([name,midi])=>{
-    const response=await fetch(PIANO_URL+name+'.mp3');
-    if(!response.ok)throw new Error('ピアノ音源の取得に失敗');
-    const data=await response.arrayBuffer();
-    const buffer=await ctx.decodeAudioData(data);
-    return {midi,buffer};
-  })).then(samples=>{pianoBuffers=samples;return samples}).finally(()=>{pianoLoading=null});
-  return pianoLoading;
-}
-function pianoNote(ctx,midi,time,duration,volume=0.15){
-  if(!pianoBuffers||!bgmMaster)return;
-  let sample=pianoBuffers[0];
-  for(const item of pianoBuffers){
-    if(Math.abs(item.midi-midi)<Math.abs(sample.midi-midi))sample=item;
+const stageTracks = ['Dark Times', 'Dark Times', 'Darkest Child', 'Darkest Child', 'Five Armies'];
+const musicButton = $('bgm');
+let player = null;
+let currentTrack = '';
+
+function stopStageMusic() {
+  if (player) {
+    player.onerror = null;
+    player.pause();
+    player.removeAttribute('src');
+    player.load();
+    player = null;
   }
-  const source=ctx.createBufferSource(),gain=ctx.createGain();
-  const rate=Math.pow(2,(midi-sample.midi)/12);
-  source.buffer=sample.buffer;
-  source.playbackRate.value=rate;
-  const maxDuration=sample.buffer.duration/rate;
-  const audible=Math.min(duration,maxDuration-0.02);
-  if(audible<=0.04)return;
-  gain.gain.setValueAtTime(0.0001,time);
-  gain.gain.linearRampToValueAtTime(volume,time+0.012);
-  gain.gain.setTargetAtTime(volume*0.50,time+0.08,Math.max(0.15,audible/3));
-  gain.gain.setTargetAtTime(0.0001,time+Math.max(0.12,audible-0.38),0.13);
-  source.connect(gain);gain.connect(bgmMaster);
-  source.start(time);source.stop(time+audible);
+  currentTrack = '';
+  musicButton.textContent = '♫ BGM 再生';
+  musicButton.setAttribute('aria-pressed', 'false');
 }
-function createRoom(ctx){
-  const conv=ctx.createConvolver(),seconds=1.9,length=Math.floor(ctx.sampleRate*seconds);
-  const impulse=ctx.createBuffer(2,length,ctx.sampleRate);
-  for(let channel=0;channel<2;channel++){
-    const samples=impulse.getChannelData(channel);
-    for(let i=0;i<length;i++){
-      const t=i/length;
-      samples[i]=(Math.random()*2-1)*Math.pow(1-t,3)*0.28;
-    }
+
+function playStageMusic() {
+  stopStageMusic();
+  currentTrack = stageTracks[stage];
+  const track = new Audio();
+  player = track;
+  track.loop = true;
+  track.volume = 0.32;
+  function playbackFailed() {
+    if (player !== track) return;
+    stopStageMusic();
+    $('hinttext').textContent = 'BGMを読み込めなかったよ。通信状況を確認して再生を押してね。';
   }
-  conv.buffer=impulse;
-  return conv;
+  track.onerror = playbackFailed;
+  track.src = 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/' + encodeURIComponent(currentTrack) + '.mp3';
+  musicButton.textContent = '♫ BGM 停止';
+  musicButton.setAttribute('aria-pressed', 'true');
+  track.play().catch(playbackFailed);
 }
-function bgmSchedule(){
-  if(!bgmPlaying||!audioContext||!bgmMaster||!pianoBuffers)return;
-  const ctx=audioContext;
-  while(bgmNextTime<ctx.currentTime+0.26){
-    const step=bgmBeatIndex%64,bar=Math.floor(step/4),beat=step%4,t=bgmNextTime;
-    const root=BGM_ROOTS[bar],chord=BGM_CHORDS[bar];
-    // Sparse introduction then fuller, cinematic piano arpeggios.
-    if(beat===0){
-      pianoNote(ctx,root-12,t,BGM_BEAT*3.7,0.16);
-      pianoNote(ctx,root,t+0.08,BGM_BEAT*2.5,0.085);
-      chord.forEach((note,i)=>pianoNote(ctx,note,t+0.10+i*0.085,BGM_BEAT*3.25,0.074));
-      // Low strings, middle strings and a restrained, voice-like harmonium pad.
-      ensembleNote(ctx,'cello',root-12,t,BGM_BEAT*3.7,0.080,0.18);
-      if(bar>=2)ensembleNote(ctx,'violin',chord[1]+12,t+0.08,BGM_BEAT*3.4,0.052,0.3);
-      if(bar>=4)chord.forEach((n,i)=>ensembleNote(ctx,'harmonium',n+12,t+0.08*i,BGM_BEAT*3.45,0.016,0.5));
-      // Horn statements begin midway and become stronger near the finale.
-      if(bar>=6&&bar%2===0){
-        ensembleNote(ctx,'french-horn',root+12,t+0.07,BGM_BEAT*3.1,bar>=12?0.087:0.063,0.22);
-      }
-    }
-    if(beat===2){
-      pianoNote(ctx,root,t,BGM_BEAT*1.8,0.11);
-      pianoNote(ctx,chord[1]+12,t+0.08,BGM_BEAT*1.8,0.076);
-      if(bar>=8)pianoNote(ctx,chord[2]+12,t+0.22,BGM_BEAT*1.5,0.065);
-      if(bar>=8)ensembleNote(ctx,'violin',chord[2]+12,t+0.12,BGM_BEAT*1.6,0.049,0.21);
-    }
-    if(bar>=4&&beat===3){
-      pianoNote(ctx,chord[(bar+step)%3]+12,t,BGM_BEAT*0.88,0.046);
-    }
-    const melody=BGM_MELODY[step];
-    if(melody!==null&&melody!==undefined){
-      pianoNote(ctx,melody,t,BGM_BEAT*1.45,0.155);
-      if(bar>=12&&beat===0)pianoNote(ctx,melody-12,t+0.04,BGM_BEAT*1.35,0.057);
-    }
-    bgmBeatIndex++;bgmNextTime+=BGM_BEAT;
-  }
-}
-function stopBgm(){
-  bgmPlaying=false;
-  if(bgmTimer!==null){clearInterval(bgmTimer);bgmTimer=null}
-  if(bgmMaster&&audioContext){
-    const t=audioContext.currentTime;
-    bgmMaster.gain.cancelScheduledValues(t);
-    bgmMaster.gain.setTargetAtTime(0,t,0.045);
-  }
-  bgmMaster=null;
-  renderBgm();
-}
-async function startBgm(){
-  if(bgmPlaying||pianoLoading)return;
-  const ctx=getBgmContext();
-  if(!ctx){$('hinttext').textContent='このブラウザでは音声再生を利用できないよ';return}
-  const button=$('bgm');
-  button.textContent='♫ ピアノ読込中…';
-  button.disabled=true;
-  try{
-    await loadPianoSamples(ctx);
-    // Add recorded strings and horn. Loading failure of optional instruments
-    // never blocks the piano arrangement.
-    try{await loadEnsemble(ctx)}catch(err){console.warn('Optional orchestra samples unavailable',err)}
-    // The user may have switched tabs while samples were loading.
-    if(document.hidden)return;
-    bgmMaster=ctx.createGain();
-    bgmMaster.gain.value=0.52;
-    bgmMaster.connect(ctx.destination);
-    // Gentle room ambience, in addition to the unmodified sampled piano recordings.
-    bgmReverb=createRoom(ctx);
-    const wet=ctx.createGain();wet.gain.value=0.18;
-    bgmMaster.connect(bgmReverb);bgmReverb.connect(wet);wet.connect(ctx.destination);
-    bgmPlaying=true;bgmBeatIndex=0;bgmNextTime=ctx.currentTime+0.09;
-    bgmSchedule();bgmTimer=setInterval(bgmSchedule,90);
-    $('hinttext').textContent='';
-  }catch(err){
-    console.error('Piano sample load failed',err);
-    $('hinttext').textContent='ピアノ音源を読み込めなかったよ。通信状況を確認してもう一度試してね。';
-  }finally{
-    button.disabled=false;
-    renderBgm();
-  }
-}
-function renderBgm(){
-  const b=$('bgm');b.textContent=bgmPlaying?'♫ BGM 停止':'♫ BGM 再生';
-  b.setAttribute('aria-pressed',String(bgmPlaying));
-}
-$('bgm').addEventListener('click',()=>{if(bgmPlaying)stopBgm();else startBgm()});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&bgmPlaying)stopBgm()});
-renderBgm();
+
+musicButton.addEventListener('click', () => player ? stopStageMusic() : playStageMusic());
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopStageMusic(); });
 function renderSound(){const b=$('sound');b.textContent=soundOn?'🔊 効果音 ON':'🔇 効果音 OFF';b.setAttribute('aria-pressed',String(soundOn))}
 $('sound').addEventListener('click',()=>{
   soundOn=!soundOn;
@@ -396,7 +229,7 @@ $('sound').addEventListener('click',()=>{
 renderSound();
 const sigils=['✧','☽','☼','♜','✝','❧','✥','✦','♛','♧','⌛','✺','✟','❖','☾','⚖','❀','♜','✷','♣','♨','✶','⚜','▤','♕'];
 function save(){try{localStorage.setItem('switch25-progress',JSON.stringify({stage,completed}))}catch{}}
-function start(n){stage=n;state=LEVELS[n].initial.slice();moves=0;hintCell=-1;$('hinttext').textContent='';save();render()}
+function start(n){stage=n;state=LEVELS[n].initial.slice();moves=0;hintCell=-1;$('hinttext').textContent='';save();render();if (player && currentTrack !== stageTracks[n]) playStageMusic()}
 function press(i){if(state.every(Boolean))return;for(let j=0;j<25;j++){if(Math.abs(Math.floor(i/5)-Math.floor(j/5))+Math.abs(i%5-j%5)<=1)state[j]^=1}moves++;se('switch');hintCell=-1;$('hinttext').textContent='';if(state.every(Boolean)){if(!completed.includes(stage))completed.push(stage);save();se('clear')}render()}
 function render(){const clear=state.every(Boolean);$('moves').textContent=moves;$('lit').textContent=state.filter(Boolean).length+' / 25 点灯';$('title').textContent=clear?'🎉 CLEAR!':`LEVEL ${stage+1} — ${LEVELS[stage].name}`;$('description').textContent=clear?`${moves}手でクリア！ 目標手数は${LEVELS[stage].par}手`:`目標手数：${LEVELS[stage].par}手｜すべて点灯させよう`;$('next').textContent=stage===4?'最初から ↻':'NEXT ❯';$('board').innerHTML='';state.forEach((on,i)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(hintCell===i?' hint':'');b.setAttribute('aria-label',`${Math.floor(i/5)+1}行${i%5+1}列：${on?'点灯':'消灯'}`);b.setAttribute('aria-pressed',!!on);b.innerHTML='<span class="sigil" aria-hidden="true">'+sigils[i]+'</span>';b.addEventListener('click',()=>press(i));$('board').append(b)});$('levels').innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.className='level'+(i===stage?' active':'')+(completed.includes(i)?' completed':'');b.textContent=i+1;b.setAttribute('aria-label',`レベル${i+1} ${l.name}`);b.setAttribute('aria-current',i===stage?'step':'false');b.addEventListener('click',()=>start(i));$('levels').append(b)})}
 // 現在の盤面を必ず解けるようにするGF(2)ガウス消去と最小手数探索。
