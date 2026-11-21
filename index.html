@@ -5,12 +5,13 @@
 <meta name="theme-color" content="#0e1729"><meta name="description" content="上下左右を反転させて全部点灯！5ステージの無料ロジックパズル。">
 <title>SWITCH / 25 - ひらめきパズル</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:#eff6ff;background:#09111f}*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% 0%,#203958 0%,#0e1729 55%,#09111f 100%);display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,490px);padding:clamp(17px,4vw,30px);background:#111e32;border:1px solid #35445c;border-radius:26px;box-shadow:0 20px 80px #0006}.eyebrow{font-size:11px;letter-spacing:.2em;color:#a9b9d0;font-weight:700}.header{display:flex;justify-content:space-between;gap:10px;align-items:start}.header h1{font-size:clamp(25px,6vw,33px);margin:3px 0 0;letter-spacing:.035em}.counter{text-align:right;color:#b9c9dd;font-size:11px}.counter strong{display:block;font-size:31px;color:#fff;font-variant-numeric:tabular-nums}.lead{color:#a7bad1;font-size:13px;margin:13px 0 16px;line-height:1.7}.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:0 0 16px}.level{border:1px solid #465772;border-radius:11px;background:#24354e;color:#d8e6f7;padding:11px 0;font-weight:800;cursor:pointer}.level.active{border-color:#f6cb54;background:#524527;color:#ffe492}.level.completed:after{content:' ✓';color:#70e0a5}.boardwrap{background:#19283e;border-radius:19px;padding:clamp(12px,3.8vw,20px)}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(6px,1.8vw,11px)}.cell{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;border:2px solid #516077;background:#35465f;color:#9babbd;cursor:pointer;transition:background .12s,transform .12s,border-color .12s;touch-action:manipulation}.cell:active{transform:scale(.94)}.cell.on{background:#f5c94f;border-color:#ffe49a;color:#705016;box-shadow:0 0 16px #f4c45150}.cell.hint{outline:3px solid #70e0a5;outline-offset:-5px}.cell svg{width:43%;height:43%}.status{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#b9c9db;margin-top:13px}.swatch{width:11px;height:11px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}.message{text-align:center;min-height:56px;margin:15px 0 6px}.message b{display:block;font-size:17px}.message small{display:block;color:#a7b9ce;margin-top:7px}.buttons{display:flex;gap:9px}.action{flex:1;border:1px solid #526581;border-radius:11px;background:#273953;color:#f1f6ff;padding:13px 9px;font-size:14px;font-weight:700;cursor:pointer}.action.primary{background:#ecd073;border-color:#ecd073;color:#3f3114}.footer{text-align:center;color:#899db6;font-size:11px;line-height:1.6;margin-top:16px}.hinttext{text-align:center;color:#a1e7c6;font-size:12px;min-height:20px;margin-top:8px}.action:focus-visible,.level:focus-visible,.cell:focus-visible{outline:3px solid white;outline-offset:2px}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+:root{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:#eff6ff;background:#09111f}*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% 0%,#203958 0%,#0e1729 55%,#09111f 100%);display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,490px);padding:clamp(17px,4vw,30px);background:#111e32;border:1px solid #35445c;border-radius:26px;box-shadow:0 20px 80px #0006}.eyebrow{font-size:11px;letter-spacing:.2em;color:#a9b9d0;font-weight:700}.header{display:flex;justify-content:space-between;gap:10px;align-items:start}.header h1{font-size:clamp(25px,6vw,33px);margin:3px 0 0;letter-spacing:.035em}.counter{text-align:right;color:#b9c9dd;font-size:11px}.counter strong{display:block;font-size:31px;color:#fff;font-variant-numeric:tabular-nums}.lead{color:#a7bad1;font-size:13px;margin:13px 0 16px;line-height:1.7}.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:0 0 16px}.level{border:1px solid #465772;border-radius:11px;background:#24354e;color:#d8e6f7;padding:11px 0;font-weight:800;cursor:pointer}.level.active{border-color:#f6cb54;background:#524527;color:#ffe492}.level.completed:after{content:' ✓';color:#70e0a5}.boardwrap{background:#19283e;border-radius:19px;padding:clamp(12px,3.8vw,20px)}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(6px,1.8vw,11px)}.cell{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;border:2px solid #516077;background:#35465f;color:#9babbd;cursor:pointer;transition:background .12s,transform .12s,border-color .12s;touch-action:manipulation}.cell:active{transform:scale(.94)}.cell.on{background:#f5c94f;border-color:#ffe49a;color:#705016;box-shadow:0 0 16px #f4c45150}.cell.hint{outline:3px solid #70e0a5;outline-offset:-5px}.cell svg{width:43%;height:43%}.status{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#b9c9db;margin-top:13px}.swatch{width:11px;height:11px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}.message{text-align:center;min-height:56px;margin:15px 0 6px}.message b{display:block;font-size:17px}.message small{display:block;color:#a7b9ce;margin-top:7px}.buttons{display:flex;gap:9px}.action{flex:1;border:1px solid #526581;border-radius:11px;background:#273953;color:#f1f6ff;padding:13px 9px;font-size:14px;font-weight:700;cursor:pointer}.action.primary{background:#ecd073;border-color:#ecd073;color:#3f3114}.soundbar{display:flex;justify-content:flex-end;margin:-3px 0 12px}.sound-toggle{background:#24354e;color:#d8e6f7;border:1px solid #526581;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}.sound-toggle:focus-visible{outline:3px solid white;outline-offset:2px}.footer{text-align:center;color:#899db6;font-size:11px;line-height:1.6;margin-top:16px}.hinttext{text-align:center;color:#a1e7c6;font-size:12px;min-height:20px;margin-top:8px}.action:focus-visible,.level:focus-visible,.cell:focus-visible{outline:3px solid white;outline-offset:2px}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body><main class="app">
 <div class="header"><div><div class="eyebrow">LIGHTS OUT PUZZLE</div><h1>SWITCH / 25</h1></div><div class="counter">MOVES<strong id="moves">0</strong></div></div>
 <p class="lead">スイッチを押すと、自分と上下左右が反転。<br>25個すべてを点灯させよう！</p>
+<div class="soundbar"><button type="button" class="sound-toggle" id="sound" aria-pressed="true">🔊 効果音 ON</button></div>
 <nav class="levels" id="levels" aria-label="ステージ選択"></nav>
 <section class="boardwrap"><div class="board" id="board" aria-label="5×5のスイッチ盤面"></div><div class="status"><span><i class="swatch" style="background:#f5c94f"></i>点灯　<i class="swatch" style="background:#35465f"></i>消灯</span><span id="lit">0 / 25 点灯</span></div></section>
 <div class="message" aria-live="polite"><b id="title">LEVEL 1</b><small id="description">全部点灯させよう</small></div>
@@ -25,13 +26,50 @@ const saved=(()=>{try{return JSON.parse(localStorage.getItem('switch25-progress'
 let stage=Math.min(4,Math.max(0,Number(saved.stage)||0));
 let completed=Array.isArray(saved.completed)?saved.completed:[];
 let state=[],moves=0,hintCell=-1;
+let soundOn=true;
+try{soundOn=localStorage.getItem('switch25-sound')!=='off'}catch{}
+let audioContext=null;
+function audio(){
+  if(!soundOn)return null;
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)return null;
+    if(!audioContext)audioContext=new Ctx();
+    if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+    return audioContext;
+  }catch{return null}
+}
+function tone(freq,duration=0.085,type='sine',volume=0.075,delay=0){
+  const ctx=audio();if(!ctx)return;
+  try{
+    const now=ctx.currentTime+delay,osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.type=type;osc.frequency.setValueAtTime(freq,now);
+    gain.gain.setValueAtTime(0.0001,now);
+    gain.gain.exponentialRampToValueAtTime(Math.max(volume,0.0002),now+0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001,now+duration);
+    osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+duration+0.02);
+  }catch{}
+}
+function se(kind){
+  if(kind==='switch'){tone(620,0.075,'triangle',0.065);tone(900,0.055,'sine',0.025,0.025)}
+  else if(kind==='clear'){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,0.24,'sine',0.095,i*0.115))}
+  else if(kind==='reset'){tone(430,0.12,'triangle',0.055);tone(285,0.13,'triangle',0.045,0.055)}
+  else if(kind==='hint'){tone(780,0.11,'sine',0.065);tone(990,0.14,'sine',0.055,0.09)}
+}
+function renderSound(){const b=$('sound');b.textContent=soundOn?'🔊 効果音 ON':'🔇 効果音 OFF';b.setAttribute('aria-pressed',String(soundOn))}
+$('sound').addEventListener('click',()=>{
+  soundOn=!soundOn;
+  try{localStorage.setItem('switch25-sound',soundOn?'on':'off')}catch{}
+  renderSound();if(soundOn)se('switch');
+});
+renderSound();
 const power='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 2v10"/><path d="M6.2 5.8a9 9 0 1 0 11.6 0"/></svg>';
 function save(){try{localStorage.setItem('switch25-progress',JSON.stringify({stage,completed}))}catch{}}
 function start(n){stage=n;state=LEVELS[n].initial.slice();moves=0;hintCell=-1;$('hinttext').textContent='';save();render()}
-function press(i){if(state.every(Boolean))return;for(let j=0;j<25;j++){if(Math.abs(Math.floor(i/5)-Math.floor(j/5))+Math.abs(i%5-j%5)<=1)state[j]^=1}moves++;hintCell=-1;$('hinttext').textContent='';if(state.every(Boolean)){if(!completed.includes(stage))completed.push(stage);save()}render()}
+function press(i){if(state.every(Boolean))return;for(let j=0;j<25;j++){if(Math.abs(Math.floor(i/5)-Math.floor(j/5))+Math.abs(i%5-j%5)<=1)state[j]^=1}moves++;se('switch');hintCell=-1;$('hinttext').textContent='';if(state.every(Boolean)){if(!completed.includes(stage))completed.push(stage);save()}se('clear');render()}
 function render(){const clear=state.every(Boolean);$('moves').textContent=moves;$('lit').textContent=state.filter(Boolean).length+' / 25 点灯';$('title').textContent=clear?'🎉 CLEAR!':`LEVEL ${stage+1} — ${LEVELS[stage].name}`;$('description').textContent=clear?`${moves}手でクリア！ 目標手数は${LEVELS[stage].par}手`:`目標手数：${LEVELS[stage].par}手｜すべて点灯させよう`;$('next').textContent=stage===4?'最初から ↻':'次の問題 →';$('board').innerHTML='';state.forEach((on,i)=>{const b=document.createElement('button');b.type='button';b.className='cell'+(on?' on':'')+(hintCell===i?' hint':'');b.setAttribute('aria-label',`${Math.floor(i/5)+1}行${i%5+1}列：${on?'点灯':'消灯'}`);b.setAttribute('aria-pressed',!!on);b.innerHTML=power;b.addEventListener('click',()=>press(i));$('board').append(b)});$('levels').innerHTML='';LEVELS.forEach((l,i)=>{const b=document.createElement('button');b.type='button';b.className='level'+(i===stage?' active':'')+(completed.includes(i)?' completed':'');b.textContent=i+1;b.setAttribute('aria-label',`レベル${i+1} ${l.name}`);b.setAttribute('aria-current',i===stage?'step':'false');b.addEventListener('click',()=>start(i));$('levels').append(b)})}
 // 現在の盤面を必ず解けるようにするGF(2)ガウス消去と最小手数探索。
 function optimalSolution(board){const a=[];for(let i=0;i<25;i++){let mask=0;for(let j=0;j<25;j++)if(Math.abs((i/5|0)-(j/5|0))+Math.abs(i%5-j%5)<=1)mask|=1<<j;a.push({mask,rhs:1-board[i]})}const pivots=[];let r=0;for(let c=0;c<25;c++){let p=-1;for(let k=r;k<25;k++)if((a[k].mask>>>c)&1){p=k;break}if(p<0)continue;[a[r],a[p]]=[a[p],a[r]];for(let k=0;k<25;k++)if(k!==r&&((a[k].mask>>>c)&1)){a[k].mask^=a[r].mask;a[k].rhs^=a[r].rhs}pivots.push(c);r++}for(let k=r;k<25;k++)if(!a[k].mask&&a[k].rhs)return null;const free=[];for(let c=0;c<25;c++)if(!pivots.includes(c))free.push(c);let best=null;for(let v=0;v<(1<<free.length);v++){let x=0;free.forEach((c,j)=>{if((v>>>j)&1)x|=1<<c});for(let k=r-1;k>=0;k--){const c=pivots[k];let parity=0;let bits=(a[k].mask&~(1<<c))&x;while(bits){parity^=1;bits&=bits-1}if(a[k].rhs^parity)x|=1<<c}const pos=[];for(let j=0;j<25;j++)if((x>>>j)&1)pos.push(j);if(best===null||pos.length<best.length)best=pos}return best}
-$('reset').addEventListener('click',()=>start(stage));$('next').addEventListener('click',()=>start((stage+1)%5));$('hint').addEventListener('click',()=>{const solution=optimalSolution(state);if(!solution){$('hinttext').textContent='この状態は解けないよ';return}if(solution.length===0){$('hinttext').textContent='もうクリアしているよ！';return}hintCell=solution[0];$('hinttext').textContent=`緑の枠を押すと、最短解のひとつに進めるよ（残り${solution.length}手）`;render()});
+$('reset').addEventListener('click',()=>{se('reset');start(stage)});$('next').addEventListener('click',()=>{se('switch');start((stage+1)%5)});$('hint').addEventListener('click',()=>{se('hint');const solution=optimalSolution(state);if(!solution){$('hinttext').textContent='この状態は解けないよ';return}if(solution.length===0){$('hinttext').textContent='もうクリアしているよ！';return}hintCell=solution[0];$('hinttext').textContent=`緑の枠を押すと、最短解のひとつに進めるよ（残り${solution.length}手）`;render()});
 start(stage);
 </script></body></html>
