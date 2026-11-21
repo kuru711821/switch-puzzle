@@ -118,9 +118,56 @@ h1{margin:4px 0 0;font-weight:400;letter-spacing:.11em;font-size:clamp(28px,5vw,
 @media(max-width:850px){.app{padding:20px 14px}.layout{grid-template-columns:1fr}.side{padding:0}.side-panel{padding:10px 12px}.side-heading{margin:0 0 9px;font-size:13px;padding-bottom:7px}.levels{flex-direction:row;gap:6px}.level{flex:1;min-height:40px}.side.right{order:3}.center{order:2}.side.left{order:1}.side.right .side-panel{display:flex;gap:14px;align-items:center;justify-content:space-between}.side.right .side-heading{display:none}.counter strong{display:inline;font-size:25px;margin-left:8px}.goal{border:0;padding:0}.altar{max-width:590px;margin:auto}.mast{margin-bottom:20px}}
 @media(max-width:480px){body{padding:7px}.app{padding:15px 9px}.altar{padding:10px;border-width:5px}.boardwrap{padding:8px}.board{gap:4px}.cell{border-width:1px}.cell:before{inset:3px}.sigil{font-size:clamp(15px,5.2vw,24px)}.goal{font-size:10px}.candle{display:none}.buttons{gap:5px}.soundbar{gap:6px}.sound-toggle{font-size:11px;padding:7px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* The entrance seal uses local shapes so it appears before any music loads. */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 26px;
+  background: radial-gradient(ellipse at center, #282427, #10131b 53%, #090c12);
+  color: #ead4a2;
+  font: 15px Georgia, "Yu Mincho", serif;
+  letter-spacing: .15em;
+}
+.loading-seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border: 1px solid #8b7147;
+  border-radius: 50%;
+  box-shadow: 0 0 32px #daa74d27, inset 0 0 18px #daa74d20;
+  font-size: 38px;
+  line-height: 1;
+  text-shadow: 0 0 12px #e2b367;
+}
+.loading-seal::before, .loading-seal::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border: 1px solid #bb9457;
+  transform: rotate(45deg);
+}
+.loading-seal::after { inset: 22%; transform: none; border-color: #f4d89c; }
+@media (prefers-reduced-motion: no-preference) {
+  .loading-seal::before { animation: awakenSeal 1.6s ease-out both; }
+  @keyframes awakenSeal {
+    from { transform: rotate(-45deg) scale(.72); opacity: .3; }
+    to { transform: rotate(45deg); opacity: 1; }
+  }
+}
 </style>
 </head>
-<body><main class="app">
+<body>
+<div class="loading-screen" id="loading-screen" role="status">
+  <span class="loading-seal" aria-hidden="true">✦</span>
+  <span>祭壇を目覚めさせています…</span>
+</div>
+<main class="app" inert>
 <header class="mast"><div class="halo" aria-hidden="true">✧ ✦ ✧</div><div class="eyebrow">THE RUINED SANCTUARY</div><h1>SWITCH / 25</h1><p class="lead">古き祭壇に光を灯せ。押した紋章と上下左右の封印が反転する。</p></header>
 <div class="layout">
 <aside class="side left"><div class="side-panel"><h2 class="side-heading">✧ STAGE ✧</h2><nav class="levels" id="levels" aria-label="ステージ選択"></nav></div></aside>
@@ -342,6 +389,19 @@ function render(){const clear=state.every(Boolean);$('moves').textContent=moves;
 // 現在の盤面を必ず解けるようにするGF(2)ガウス消去と最小手数探索。
 function optimalSolution(board){const a=[];for(let i=0;i<25;i++){let mask=0;for(let j=0;j<25;j++)if(Math.abs((i/5|0)-(j/5|0))+Math.abs(i%5-j%5)<=1)mask|=1<<j;a.push({mask,rhs:1-board[i]})}const pivots=[];let r=0;for(let c=0;c<25;c++){let p=-1;for(let k=r;k<25;k++)if((a[k].mask>>>c)&1){p=k;break}if(p<0)continue;[a[r],a[p]]=[a[p],a[r]];for(let k=0;k<25;k++)if(k!==r&&((a[k].mask>>>c)&1)){a[k].mask^=a[r].mask;a[k].rhs^=a[r].rhs}pivots.push(c);r++}for(let k=r;k<25;k++)if(!a[k].mask&&a[k].rhs)return null;const free=[];for(let c=0;c<25;c++)if(!pivots.includes(c))free.push(c);let best=null;for(let v=0;v<(1<<free.length);v++){let x=0;free.forEach((c,j)=>{if((v>>>j)&1)x|=1<<c});for(let k=r-1;k>=0;k--){const c=pivots[k];let parity=0;let bits=(a[k].mask&~(1<<c))&x;while(bits){parity^=1;bits&=bits-1}if(a[k].rhs^parity)x|=1<<c}const pos=[];for(let j=0;j<25;j++)if((x>>>j)&1)pos.push(j);if(best===null||pos.length<best.length)best=pos}return best}
 $('reset').addEventListener('click',()=>{se('reset');start(stage)});$('next').addEventListener('click',()=>{se('transition');start((stage+1)%5)});$('hint').addEventListener('click',()=>{se('hint');const solution=optimalSolution(state);if(!solution){$('hinttext').textContent='この状態は解けないよ';return}if(solution.length===0){$('hinttext').textContent='もうクリアしているよ！';return}hintCell=solution[0];$('hinttext').textContent=`緑の枠を押すと、最短解のひとつに進めるよ（残り${solution.length}手）`;render()});
+function revealBoard() {
+  document.querySelector('.app').removeAttribute('inert');
+  $('loading-screen').remove();
+}
+
 start(stage);
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  revealBoard();
+} else {
+  const entrance = $('loading-screen').animate([{opacity: 1}, {opacity: 0}], {
+    delay: 700, duration: 280, easing: 'ease-out', fill: 'forwards'
+  });
+  entrance.finished.then(revealBoard, revealBoard);
+}
 if (musicEnabled && !document.hidden) playStageMusic();
 </script></body></html>
